@@ -1,0 +1,13 @@
+{
+  "title": "Kiwi Conversations",
+  "name": "kiwi-firefox",
+  "version": "0.0.1",
+  "description": "Kiwi Conversations searches community sites to find forum comment threads about the url you're visiting.",
+  "main": "index.js",
+  "author": "Spencer Dailey",
+  "engines": {
+    "firefox": ">=38.0a1",
+    "fennec": ">=38.0a1"
+  },
+  "license": "Simplified BSD License"
+}
