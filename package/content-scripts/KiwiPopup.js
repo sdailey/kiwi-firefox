@@ -1367,7 +1367,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
     getURLParam = function(oTarget, sVar) {
       return decodeURI(oTarget.search.replace(new RegExp("^(?:.*[&\\?]" + encodeURI(sVar).replace(/[\.\+\*]/g, "\\$&") + "(?:\\=([^&]*))?)?.*$", "i"), "$1"));
     };
-    return console.log('trying to send123 in front ');
+    return console.log('trying to send123');
   });
 
 }).call(this);

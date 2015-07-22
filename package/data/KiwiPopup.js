@@ -25,7 +25,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
     preferencesOnlyPage = false;
     initialize = function(popupParcel) {
       var view, viewName, _results;
-      console.log('in init');
+      console.log('popup::in init');
       if ((popupParcel.view != null) && (switchViews[popupParcel.view] != null)) {
         switchViews[popupParcel.view].render(popupParcel);
       } else {
@@ -48,7 +48,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
         this.bindAllGoToViewButtons = (function(_this) {
           return function(viewData) {
             var els_goTo_view, viewValue, _results, _viewName;
-            console.log('@bindAllGoToViewButtons = (viewData) =>');
+            console.log('popup::@bindAllGoToViewButtons = (viewData) =>');
             console.log(_this.DOMname);
             _results = [];
             for (_viewName in switchViews) {
@@ -121,11 +121,11 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
                 }
                 openedCustomSearchHTML += "</div> <div class='notFixed'></div>";
                 $(_this.DOMselector).html(openedCustomSearchHTML);
-                console.log('console.log @DOMselector + " .topSearchBar"' + _this.DOMselector + " .topSearchBar");
+                console.log('popup::console.log @DOMselector + " .topSearchBar"' + _this.DOMselector + " .topSearchBar");
                 duplicateFixedHeight = function() {
                   var fixedElHeight;
                   fixedElHeight = $(_this.DOMselector + " .topSearchBar").outerHeight();
-                  console.log('console.log fixedElHeight');
+                  console.log('popup::console.log fixedElHeight');
                   console.log(fixedElHeight);
                   if (fixedElHeight === 0) {
                     return setTimeout(function() {
@@ -143,7 +143,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
             bind: (function(_this) {
               return function(popupParcel) {
                 var clearPreviousSearch, inputSearchQueryInput, previousSearchLink;
-                console.log('bind: (popupParcel) =>');
+                console.log('popup::bind: (popupParcel) =>');
                 inputSearchQueryInput = $("#customSearchQueryInput");
                 previousSearchLink = $("#openPreviousSearch");
                 clearPreviousSearch = $("#clearPreviousSearch");
@@ -159,7 +159,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
                   return sendParcel(parcel);
                 });
                 return inputSearchQueryInput.bind('click', function() {
-                  console.log('@widgetOpenBool = true');
+                  console.log('popup::@widgetOpenBool = true');
                   _this.widgetOpenBool = true;
                   return _this.render('opened', popupParcel);
                 });
@@ -170,7 +170,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
             paint: (function(_this) {
               return function(popupParcel) {
                 var activeClass, ariaPressedState, customSearchResultsHTML, duplicateFixedHeight, openedCustomSearchHTML, queryString, serviceDisabledAttr, serviceInfoObject, service_PreppedResults, tagActiveChecked, tagDisabledAttr, tagName, tagObject, _i, _j, _len, _len1, _ref, _ref1, _ref2;
-                console.log('popupParcel.kiwi_servicesInfo.length');
+                console.log('popup::popupParcel.kiwi_servicesInfo.length');
                 console.log(popupParcel.kiwi_servicesInfo.length);
                 queryString = popupParcel.kiwi_customSearchResults.queryString != null ? popupParcel.kiwi_customSearchResults.queryString : '';
                 openedCustomSearchHTML = '<div class="topSearchBar"> <div class="evenlySpacedContainer"> <input id="customSearchQueryInput" value="' + queryString + '" type="text" placeholder=" combined search" style="width:234px; margin-right: 10px;" /> <button  class="btn btn-mini btn-default" id="customSearchQuerySubmit" style="margin-right: 10px;">Submit</button> <button style="" class="goTo_userPreferencesView btn btn-mini btn-default"> Options <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></button> </div> <br> <div class="evenlySpacedContainer" style="position: relative; top: -8px; margin-bottom: 3px;">';
@@ -178,7 +178,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
                 for (_i = 0, _len = _ref.length; _i < _len; _i++) {
                   serviceInfoObject = _ref[_i];
                   openedCustomSearchHTML += '<div>';
-                  console.log('asdfasdf ' + serviceInfoObject.name);
+                  console.log('popup::asdfasdf ' + serviceInfoObject.name);
                   console.debug(serviceInfoObject);
                   if (serviceInfoObject.active === 'off') {
                     serviceDisabledAttr = ' disabled title="Service must be active, can be changed in options." ';
@@ -246,7 +246,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
                   var fixedElHeight, fixedElTableHeight;
                   fixedElHeight = $(_this.DOMselector + " .topSearchBar").outerHeight();
                   fixedElTableHeight = $(_this.DOMselector + " .topSearchBar table").outerHeight();
-                  console.log('console.log fixedElHeight');
+                  console.log('popup::console.log fixedElHeight');
                   console.log(fixedElHeight);
                   if (fixedElTableHeight === 0) {
                     return setTimeout(function() {
@@ -290,7 +290,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
                     ariaPressed = $(ev.target).attr('aria-pressed');
                     if (ariaPressed === 'true') {
                       $('button.dropDownPrefs_' + serviceName).removeClass('active');
-                      console.log('if ev.target.checked == "false" ' + serviceName);
+                      console.log('popup::if ev.target.checked == "false" ' + serviceName);
                       $(_this.DOMselector + " input.tagPref_" + serviceName).attr('disabled', 'disabled');
                     } else {
                       $('button.dropDownPrefs_' + serviceName).addClass('active');
@@ -329,7 +329,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
                       servicesToSearch[serviceName].customSearchTags[tagName] = {};
                     }
                   }
-                  console.log('asfdasdfasdf ' + serviceName);
+                  console.log('popup::asfdasdfasdf ' + serviceName);
                   console.debug(servicesToSearch);
                   if (queryString !== '') {
                     parcel = {
@@ -413,9 +413,9 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
         }
         this.unbindView(this.name);
         if ((renderState == null) && (this.renderStates.__normal__ == null)) {
-          console.log('ERROR: must declare renderState for view ' + this.name + ' since __normal__ undefined');
+          console.log('popup::ERROR: must declare renderState for view ' + this.name + ' since __normal__ undefined');
         }
-        console.log('console.debug renderState ' + renderState);
+        console.log('popup::console.debug renderState ' + renderState);
         console.debug(this.renderStates);
         this.renderStates[renderState].paint(popupParcel);
         this.bindAllGoToViewButtons(popupParcel);
@@ -456,12 +456,12 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
         for (_viewName in switchViews) {
           viewValue = switchViews[_viewName];
           if (_viewName === this.name) {
-            console.log('showing ' + _viewName);
+            console.log('popup::showing ' + _viewName);
             _results.push($('#' + _viewName + '_View').css({
               'display': 'block'
             }));
           } else {
-            console.log('hiding ' + _viewName);
+            console.log('popup::hiding ' + _viewName);
             _results.push($('#' + _viewName + '_View').css({
               'display': 'none'
             }));
@@ -504,7 +504,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
             paint: (function(_this) {
               return function(popupParcel) {
                 var preppedHTMLstring, researchModeDisabledButtonsHTML, serviceInfoObject, service_PreppedResults, submitTitle, submitUrl, _i, _len, _ref;
-                console.log(' in conversations view');
+                console.log('popup:: in conversations view');
                 console.debug(popupParcel);
                 _this.Widgets['customSearch'].init(popupParcel);
                 researchModeDisabledButtonsHTML = '';
@@ -615,7 +615,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
               return function(popupParcel) {
                 var activeCheck, autoOffTimerType, autoOffTimerValue, currentTime, index, notActiveCheck, researchModeExpirationString, researchModeHtml, researchOffString, researchOnString, service, servicesHtml, _i, _len, _ref;
                 $(_this.DOMselector + " .userErrMsg").html('');
-                console.log('paint: adsfaeaewfawefawefawef(popupParcel) =># viewName = ');
+                console.log('popup::paint: adsfaeaewfawefawefawef(popupParcel) =># viewName = ');
                 if (preferencesOnlyPage === true) {
                   $("#menuBar_preferences").hide();
                 }
@@ -680,10 +680,10 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
                     console.log(" if service.name == 'gnews'  servicesHtml ");
                     console.debug(service);
                     servicesHtml += '<br><br> the topic has had <input id="' + service.name + '_numberOfStoriesFoundWithinTheHoursSincePostedLimit" type="text" size="4" value="' + service.notableConditions.numberOfStoriesFoundWithinTheHoursSincePostedLimit + '"/> or more related stories published within the last <input id="' + service.name + '_hoursNotable" type="text" size="4" value="' + service.notableConditions.hoursSincePosted + '"/> hours <br> <div style="width:100%; text-align:center;"><span style="padding:7px; margin-right: 280px; display: inline-block;"> - or - </span></div> number of News Clusters  <input id="' + service.name + '_numberOfRelatedItemsWithClusterURL" type="text" size="4" value="' + service.notableConditions.numberOfRelatedItemsWithClusterURL + '"/> </div> </td> </tr></tbody></table> </div>';
-                    console.log('trying to set with ' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting - or');
+                    console.log('popup::trying to set with ' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting - or');
                   } else {
                     servicesHtml += '<br> URL is an exact match, and: <br> it has been <input id="' + service.name + '_hoursNotable" type="text" size="4" value="' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting <br> <div style="width:100%; text-align:center;"><span style="padding:7px; margin-right: 280px; display: inline-block;"> - or - </span></div> a post has <input id="' + service.name + '_commentsNotable" type="text" size="4" value="' + service.notableConditions.num_comments + '"/> or more comments </div> </td> </tr></tbody></table> </div>';
-                    console.log('trying to set with ' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting - or');
+                    console.log('popup::trying to set with ' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting - or');
                   }
                 }
                 return $("#servicesInfoDrop").html(servicesHtml);
@@ -756,13 +756,13 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
                   }
                 }
                 postError = function(userErrMsg) {
-                  console.log('trying to post error ' + userErrMsg);
+                  console.log('popup::trying to post error ' + userErrMsg);
                   return $(_this.DOMselector + " .userErrMsg").html("<br>" + userErrMsg);
                 };
                 return saveButtons.bind('click', function() {
                   var active, allowedAutoOffTypes, autoOffTimerType, autoOffTimerValue, hoursSincePosted, num_comments, numberOfRelatedItemsWithClusterURL, numberOfStoriesFoundWithinTheHoursSincePostedLimit, parcel, researchModeHTMLval, _j, _k, _len1, _len2, _ref1, _ref2;
                   researchModeHTMLval = $("input:radio[name='research']:checked").val();
-                  console.log('researchModeHTMLval is ' + researchModeHTMLval);
+                  console.log('popup::researchModeHTMLval is ' + researchModeHTMLval);
                   if (researchModeHTMLval !== 'on' && researchModeHTMLval !== 'off') {
                     postError('research mode must be "on" or "off"');
                     return 0;
@@ -816,7 +816,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
                       }
                     }
                   }
-                  console.log('1234');
+                  console.log('popup::1234');
                   popupParcel.kiwi_userPreferences.researchModeOnOff = researchModeHTMLval;
                   if (autoOffTimerType !== 'custom') {
                     popupParcel.kiwi_userPreferences.autoOffTimerType = autoOffTimerType;
@@ -844,7 +844,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
                     }
                   }
                   popupParcel.view = 'userPreferences';
-                  console.log('4567');
+                  console.log('popup::4567');
                   console.debug(popupParcel);
                   parcel = {
                     refreshView: popupParcel.view,
@@ -881,12 +881,12 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
           __normal__: {
             paint: (function(_this) {
               return function(popupParcel) {
-                return console.log('painting ' + _this.name);
+                return console.log('popup::painting ' + _this.name);
               };
             })(this),
             bind: (function(_this) {
               return function(popupParcel) {
-                return console.log('binding ' + _this.name);
+                return console.log('popup::binding ' + _this.name);
               };
             })(this)
           }
@@ -915,12 +915,12 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
           __normal__: {
             paint: (function(_this) {
               return function(popupParcel) {
-                return console.log('painting ' + _this.name);
+                return console.log('popup::painting ' + _this.name);
               };
             })(this),
             bind: (function(_this) {
               return function(popupParcel) {
-                return console.log('binding ' + _this.name);
+                return console.log('popup::binding ' + _this.name);
               };
             })(this)
           }
@@ -947,10 +947,10 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
           renderState = null;
         }
         this.renderStateTransitions = this.__renderStateTransitions__();
-        console.log('hehehehee init: (popupParcel, renderState = null) =>');
+        console.log('popup::hehehehee init: (popupParcel, renderState = null) =>');
         this.unbindView();
         renderState = renderState != null ? renderstate : "collapsed";
-        console.log(' renderState = if renderState? then renderstate else "collapsed" ' + renderState);
+        console.log('popup:: renderState = if renderState? then renderstate else "collapsed" ' + renderState);
         return this.render(popupParcel, 'collapsed');
       };
 
@@ -959,14 +959,14 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
         if (fromState == null) {
           fromState = null;
         }
-        console.log('in render for kiwi');
+        console.log('popup::in render for kiwi');
         __renderStates__callback = (function(_this) {
           return function(popupParcel, renderState) {
             return KiwiSlice.__super__.render.call(_this, popupParcel, renderState);
           };
         })(this);
         if ((fromState != null) && (this.renderStateTransitions[fromState + "__to__" + renderState] != null)) {
-          console.log('yep, has renderstate');
+          console.log('popup::yep, has renderstate');
           return this.renderStateTransitions[fromState + "__to__" + renderState](popupParcel, renderState, __renderStates__callback);
         } else {
           return KiwiSlice.__super__.render.call(this, popupParcel, renderState);
@@ -979,7 +979,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
             paint: (function(_this) {
               return function(popupParcel) {
                 var kiwiSliceHTML;
-                kiwiSliceHTML = '<div id="sliceActivateTransition" style="position:fixed; bottom: -33px; right: -33px; "> <img style="width: 66px; height: 66px;" src="symmetricKiwi.png" /> </div>';
+                kiwiSliceHTML = '<div id="sliceActivateTransition" style="position:fixed; bottom: -33px; right: -33px; "> <img style="width: 66px; height: 66px;" src="./symmetricKiwi.png" /> </div>';
                 return $(_this.DOMselector).html(kiwiSliceHTML);
               };
             })(this),
@@ -1005,7 +1005,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
             paint: (function(_this) {
               return function(popupParcel) {
                 var kiwiSliceHTML;
-                console.log('painting ' + _this.name);
+                console.log('popup::painting ' + _this.name);
                 kiwiSliceHTML = '<div id="transition_open_showMe" style=" position: fixed; bottom: 24px; right: 62px; padding: 9px; padding-right: 26px; opacity: 1; box-shadow: rgb(195, 232, 148) 0px 0px 0px 2px inset; border: 1px solid rgba(20, 86, 15, 0.87); border-radius: 4px; background-color: white;"> <button type="button" class=" goTo_creditsView btn btn-mini btn-default">credits</button> <button class=" btn btn-mini btn-default" style="" class="">newsletter</button> <button class=" btn btn-mini btn-default" id="clearKiwiURLCache">clear cache</button> <button class=" btn btn-mini btn-default" id="refreshURLresults">refresh</button> </div> <div id="sliceActivateTransition" style="position:fixed; bottom: 15px; right: 15px; "> <img style="width: 66px; height: 66px;" src="symmetricKiwi.png" /> </div>';
                 $(_this.DOMselector).html(kiwiSliceHTML);
                 return console.log(kiwiSliceHTML);
@@ -1014,7 +1014,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
             bind: (function(_this) {
               return function(popupParcel) {
                 var clearKiwiURLCacheButton, elActivateTransition, refreshURLresultsButton;
-                console.log('binding ' + _this.name);
+                console.log('popup::binding ' + _this.name);
                 elActivateTransition = $(_this.DOMselector + " #sliceActivateTransition");
                 clearKiwiURLCacheButton = $(_this.DOMselector + " #clearKiwiURLCache");
                 refreshURLresultsButton = $(_this.DOMselector + " #refreshURLresults");
@@ -1028,7 +1028,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
                 });
                 $('body').mouseup(function(e) {
                   var container;
-                  console.log('test test test');
+                  console.log('popup::test test test');
                   container = $(_this.DOMselector);
                   if (!container.is(e.target) && container.has(e.target).length === 0) {
                     $('body').unbind('mouseup');
@@ -1080,7 +1080,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
               }, {
                 duration: 500,
                 complete: function() {
-                  console.log('we are done with animation');
+                  console.log('popup::we are done with animation');
                   return __renderStates__callback(popupParcel, renderState);
                 }
               });
@@ -1128,7 +1128,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
           service_PreppedResults = _.sortBy(service_PreppedResults, 'kiwi_created_at');
           service_PreppedResults.reverse();
         }
-        console.log('console.debug serviceResults.service_PreppedResults');
+        console.log('popup::console.debug serviceResults.service_PreppedResults');
         console.debug(service_PreppedResults);
         for (index = _i = 0, _len = service_PreppedResults.length; _i < _len; index = ++_i) {
           listing = service_PreppedResults[index];
@@ -1238,7 +1238,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
           listingClass = '';
         }
         preppedHTMLstring += '<div class="showFuzzyMatches ' + listingClass + '" style="position:relative;">fuzzy matches: <br></div> <span class="fuzzyMatches">';
-        console.log('fuzzy matches 12312312 ' + serviceInfoObject.name);
+        console.log('popup::fuzzy matches 12312312 ' + serviceInfoObject.name);
         for (index = _j = 0, _len1 = service_PreppedResults.length; _j < _len1; index = ++_j) {
           listing = service_PreppedResults[index];
           listingClass = index > 10 && service_PreppedResults.length > 14 ? ' hidden_listing ' : '';
@@ -1272,7 +1272,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
       for (_i = 0, _len = buttonEls.length; _i < _len; _i++) {
         el = buttonEls[_i];
         _results.push($(el).bind('click', function(ev) {
-          console.log('clicked ' + viewName);
+          console.log('popup::clicked ' + viewName);
           return switchViews[viewName].render(viewData);
         }));
       }
@@ -1288,7 +1288,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
       }
     };
     sendParcel = function(parcel) {
-      console.log('wtf sent');
+      console.log('popup::wtf sent');
       if (parcel.msg == null) {
         return false;
       }
@@ -1367,7 +1367,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
     getURLParam = function(oTarget, sVar) {
       return decodeURI(oTarget.search.replace(new RegExp("^(?:.*[&\\?]" + encodeURI(sVar).replace(/[\.\+\*]/g, "\\$&") + "(?:\\=([^&]*))?)?.*$", "i"), "$1"));
     };
-    return console.log('trying to send123 in front ');
+    return console.log('popup::trying to send123 in front ');
   });
 
 }).call(this);

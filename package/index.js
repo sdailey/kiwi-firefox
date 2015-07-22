@@ -37,11 +37,11 @@
   console.log(tabs.activeTab);
 
   Request({
-    url: "https://www.reddit.com/submit.json?url=https://en.wikipedia.org/wiki/Oliver_Sipple",
+    url: 'https://hn.algolia.com/api/v1/search?query=elon&tags=story',
     onComplete: function(response) {
       console.log('onComplete: (response) ->');
-      console.debug(response);
-      return console.log(response);
+      console.debug(response.json);
+      return console.log(response.json);
     }
   }).get();
 
@@ -99,7 +99,7 @@
     width: 500,
     height: 500,
     contentURL: "./test.html",
-    contentScriptFile: './testpopup.js'
+    contentScriptFile: './KiwiPopup.js'
   });
 
   panel.port.on("click-link", function(url) {
