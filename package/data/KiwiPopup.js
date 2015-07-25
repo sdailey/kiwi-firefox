@@ -24,27 +24,27 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
     renderedBool = false;
     preferencesOnlyPage = false;
     initialize = function(popupParcel) {
-      var view, viewName, _results;
+      var view, viewName;
       console.log('popup::in init');
-      if ((popupParcel.view != null) && (switchViews[popupParcel.view] != null)) {
-        switchViews[popupParcel.view].render(popupParcel);
-      } else {
-        switchViews.conversations.render(popupParcel);
-      }
-      _results = [];
       for (viewName in fixedViews) {
         view = fixedViews[viewName];
-        _results.push(view.init(popupParcel));
+        view.init(popupParcel);
       }
-      return _results;
+      if ((popupParcel.view != null) && (switchViews[popupParcel.view] != null)) {
+        return switchViews[popupParcel.view].render(popupParcel);
+      } else {
+        return switchViews.conversations.render(popupParcel);
+      }
     };
     Widget = (function() {
       function Widget(_at_name, _at_parentView, _at___renderStates__) {
         this.name = _at_name;
         this.parentView = _at_parentView;
         this.__renderStates__ = _at___renderStates__;
+        this.render = __bind(this.render, this);
         this.elsToUnbind = [];
         this.DOMselector = this.parentView.DOMselector + " #" + this.name + "_Widget";
+        this.totalRenders = 0;
         this.bindAllGoToViewButtons = (function(_this) {
           return function(viewData) {
             var els_goTo_view, viewValue, _results, _viewName;
@@ -73,17 +73,17 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
             return _this.elsToUnbind = [];
           };
         })(this);
-        this.render = (function(_this) {
-          return function(renderState, popupParcel) {
-            _this.unbindWidget(_this.name);
-            _this.renderStates[renderState].paint(popupParcel);
-            _this.bindAllGoToViewButtons(popupParcel);
-            return _this.renderStates[renderState].bind(popupParcel);
-          };
-        })(this);
         this.renderStates = this.__renderStates__();
         return this;
       }
+
+      Widget.prototype.render = function(renderState, popupParcel) {
+        this.unbindWidget(this.name);
+        this.totalRenders++;
+        this.renderStates[renderState].paint(popupParcel);
+        this.bindAllGoToViewButtons(popupParcel);
+        return this.renderStates[renderState].bind(popupParcel);
+      };
 
       return Widget;
 
@@ -147,7 +147,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
                 inputSearchQueryInput = $("#customSearchQueryInput");
                 previousSearchLink = $("#openPreviousSearch");
                 clearPreviousSearch = $("#clearPreviousSearch");
-                _this.elsToUnbind.concat([inputSearchQueryInput, previousSearchLink, clearPreviousSearch]);
+                _this.elsToUnbind = _this.elsToUnbind.concat(inputSearchQueryInput, previousSearchLink, clearPreviousSearch);
                 previousSearchLink.bind('click', function() {
                   return $("#customSearchQueryInput").click();
                 });
@@ -169,7 +169,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
           opened: {
             paint: (function(_this) {
               return function(popupParcel) {
-                var activeClass, ariaPressedState, customSearchResultsHTML, duplicateFixedHeight, openedCustomSearchHTML, queryString, serviceDisabledAttr, serviceInfoObject, service_PreppedResults, tagActiveChecked, tagDisabledAttr, tagName, tagObject, _i, _j, _len, _len1, _ref, _ref1, _ref2;
+                var activeClass, ariaPressedState, customSearchResultsHTML, duplicateFixedHeight, index, openedCustomSearchHTML, queryString, resultsSummaryArray, serviceDisabledAttr, serviceInfoObject, service_PreppedResults, tagActiveChecked, tagDisabledAttr, tagName, tagObject, _i, _j, _len, _len1, _ref, _ref1, _ref2;
                 console.log('popup::popupParcel.kiwi_servicesInfo.length');
                 console.log(popupParcel.kiwi_servicesInfo.length);
                 queryString = popupParcel.kiwi_customSearchResults.queryString != null ? popupParcel.kiwi_customSearchResults.queryString : '';
@@ -220,25 +220,28 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
                 }
                 openedCustomSearchHTML += '<div> <button aria-pressed="false" autocomplete="off" type="button" class="btn btn-mini btn-default" id="close__' + _this.name + '" > close <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> </button> </div> </div>';
                 openedCustomSearchHTML += '</div> <div class="notFixed"></div> <div id="customSearchResults"></div>';
+                resultsSummaryArray = [];
                 customSearchResultsHTML = "";
                 if ((popupParcel.kiwi_customSearchResults != null) && (popupParcel.kiwi_customSearchResults.queryString != null) && popupParcel.kiwi_customSearchResults.queryString !== '') {
                   _ref2 = popupParcel.kiwi_servicesInfo;
-                  for (_j = 0, _len1 = _ref2.length; _j < _len1; _j++) {
-                    serviceInfoObject = _ref2[_j];
+                  for (index = _j = 0, _len1 = _ref2.length; _j < _len1; index = ++_j) {
+                    serviceInfoObject = _ref2[index];
                     if (popupParcel.kiwi_customSearchResults.servicesSearched[serviceInfoObject.name] != null) {
                       service_PreppedResults = popupParcel.kiwi_customSearchResults.servicesSearched[serviceInfoObject.name].results;
+                      resultsSummaryArray.push("<a class='jumpTo' data-serviceindex='" + index + "'>" + serviceInfoObject.title + " (" + service_PreppedResults.length + ")</a>");
                       customSearchResultsHTML += tailorResults[serviceInfoObject.name](serviceInfoObject, service_PreppedResults, popupParcel.kiwi_userPreferences);
                       if (service_PreppedResults.length > 14) {
                         customSearchResultsHTML += '<div class="listing showHidden" data-servicename="' + serviceInfoObject.name + '"> show remaining ' + (service_PreppedResults.length - 11) + ' results</div>';
                       }
                     } else {
-                      customSearchResultsHTML += '<br>No results for ' + serviceInfoObject.name + '<br>';
+                      customSearchResultsHTML += '<br>No results for ' + serviceInfoObject.title + '<br>';
                     }
                   }
                 } else {
                   customSearchResultsHTML += '<div id="customSearchResultsDrop"><br>No results to show... make a search! :) </div><br>';
                 }
-                customSearchResultsHTML += "<br><div class='serviceResultsTitles serviceResultsHeaderBar'>Original results for the visited URL below:</div>";
+                customSearchResultsHTML = "<div style='width: 100%; text-align: center;'>" + resultsSummaryArray.join(" - ") + "</div>" + customSearchResultsHTML;
+                customSearchResultsHTML += "<br>";
                 $(_this.DOMselector).html(openedCustomSearchHTML);
                 $(_this.DOMselector + " #customSearchResults").html(customSearchResultsHTML);
                 $(_this.DOMselector + " .hidden_listing").hide();
@@ -263,7 +266,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
             })(this),
             bind: (function(_this) {
               return function(popupParcel) {
-                var closeWidget, customSearchQueryInput, customSearchQuerySubmit, customSearch_sortByPref, elsServicesActivePrefs, elsServicesButtons, sendSearch, showHidden;
+                var closeWidget, customSearchQueryInput, customSearchQuerySubmit, customSearch_sortByPref, elsServicesActivePrefs, elsServicesButtons, jumpToServiceCustomResults, sendSearch, showHidden;
                 customSearchQueryInput = $(_this.DOMselector + " #customSearchQueryInput");
                 customSearchQuerySubmit = $(_this.DOMselector + " #customSearchQuerySubmit");
                 closeWidget = $(_this.DOMselector + ' #close__' + _this.name);
@@ -271,11 +274,18 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
                 elsServicesButtons = $(_this.DOMselector + " button.servicesToSearch ");
                 elsServicesActivePrefs = $(_this.DOMselector + " .customSearchServicePref input");
                 showHidden = $(_this.DOMselector + " .showHidden");
-                _this.elsToUnbind.concat([customSearchQueryInput, closeWidget, customSearchQuerySubmit, elsServicesButtons, customSearch_sortByPref, showHidden]);
+                jumpToServiceCustomResults = $("#customSearchResults .jumpTo");
+                _this.elsToUnbind = _this.elsToUnbind.concat(customSearchQueryInput, closeWidget, customSearchQuerySubmit, elsServicesButtons, customSearch_sortByPref, showHidden, jumpToServiceCustomResults);
+                jumpToServiceCustomResults.bind('click', function(ev) {
+                  var offsetBy, pxFromTop, serviceIndex;
+                  serviceIndex = parseInt($(ev.target).data('serviceindex'));
+                  pxFromTop = $($("#customSearchResults .serviceResultsHeaderBar")[serviceIndex]).offset().top;
+                  offsetBy = $($("#customSearchResults .serviceResultsHeaderBar")[serviceIndex]).outerHeight() + 40;
+                  return $('body,html').scrollTop(pxFromTop - offsetBy);
+                });
                 showHidden.bind('click', function(ev) {
                   var serviceName;
                   console.log("showHidden.bind 'click', (ev) ->");
-                  console.debug(ev);
                   serviceName = $(ev.target).data('servicename');
                   console.log(_this.DOMselector + " .resultsBox__" + serviceName + " .hidden_listing");
                   $(_this.DOMselector + " .resultsBox__" + serviceName + " .hidden_listing").show(1200);
@@ -300,9 +310,9 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
                   }
                   return $(ev.target).blur();
                 });
-                customSearch_sortByPref.bind('change', function() {
+                customSearch_sortByPref.bind('change', function(ev) {
                   var parcel;
-                  popupParcel.kiwi_userPreferences.sortByPref = customSearch_sortByPref.val();
+                  popupParcel.kiwi_userPreferences.sortByPref = $(ev.target).val();
                   parcel = {
                     refreshView: 'conversations',
                     keyName: 'kiwi_userPreferences',
@@ -343,7 +353,8 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
                   }
                 };
                 customSearchQueryInput.keypress(function(event) {
-                  if (event.charCode === 13) {
+                  console.log('asdfasdfas ' + event.charCode);
+                  if (event.charCode === 0) {
                     return sendSearch();
                   }
                 });
@@ -370,6 +381,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
         this.__renderStates__ = _at___renderStates__;
         this.render = __bind(this.render, this);
         this.elsToUnbind = [];
+        this.totalRenders = 0;
         this.DOMselector = "#" + this.name + "_View";
         this.Widgets = {};
         this.bindAllGoToViewButtons = (function(_this) {
@@ -412,6 +424,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
           renderState = "__normal__";
         }
         this.unbindView(this.name);
+        this.totalRenders++;
         if ((renderState == null) && (this.renderStates.__normal__ == null)) {
           console.log('popup::ERROR: must declare renderState for view ' + this.name + ' since __normal__ undefined');
         }
@@ -503,7 +516,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
           __normal__: {
             paint: (function(_this) {
               return function(popupParcel) {
-                var preppedHTMLstring, researchModeDisabledButtonsHTML, serviceInfoObject, service_PreppedResults, submitTitle, submitUrl, _i, _len, _ref;
+                var index, preppedHTMLstring, researchModeDisabledButtonsHTML, resultsHTML, resultsSummaryArray, serviceInfoObject, service_PreppedResults, submitTitle, submitUrl, totalResults, _i, _len, _ref;
                 console.log('popup:: in conversations view');
                 console.debug(popupParcel);
                 _this.Widgets['customSearch'].init(popupParcel);
@@ -516,25 +529,37 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
                 }
                 $("#researchModeDisabledButtons").html(researchModeDisabledButtonsHTML);
                 preppedHTMLstring = '<h3 style="position:relative; top:-10px;">Results for this URL:</h3>';
+                resultsSummaryArray = [];
+                totalResults = 0;
+                resultsHTML = "";
                 _ref = popupParcel.kiwi_servicesInfo;
-                for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                  serviceInfoObject = _ref[_i];
+                for (index = _i = 0, _len = _ref.length; _i < _len; index = ++_i) {
+                  serviceInfoObject = _ref[index];
                   if ((popupParcel.allPreppedResults[serviceInfoObject.name] != null) && popupParcel.allPreppedResults[serviceInfoObject.name].service_PreppedResults.length > 0) {
                     service_PreppedResults = popupParcel.allPreppedResults[serviceInfoObject.name].service_PreppedResults;
-                    preppedHTMLstring += tailorResults[serviceInfoObject.name](serviceInfoObject, service_PreppedResults, popupParcel.kiwi_userPreferences);
+                    resultsSummaryArray.push("<a class='jumpTo' data-serviceindex='" + index + "'>" + serviceInfoObject.title + " (" + service_PreppedResults.length + ")</a>");
+                    totalResults += service_PreppedResults.length;
+                    resultsHTML += tailorResults[serviceInfoObject.name](serviceInfoObject, service_PreppedResults, popupParcel.kiwi_userPreferences);
                     if (service_PreppedResults.length > 14) {
-                      preppedHTMLstring += '<div class="listing showHidden" data-servicename="' + serviceInfoObject.name + '"> show remaining ' + (service_PreppedResults.length - 11) + ' results</div>';
+                      resultsHTML += '<div class="listing showHidden" data-servicename="' + serviceInfoObject.name + '"> show remaining ' + (service_PreppedResults.length - 11) + ' results</div>';
                     }
                   } else {
                     if (serviceInfoObject.submitTitle != null) {
                       submitUrl = serviceInfoObject.submitUrl;
                       submitTitle = serviceInfoObject.submitTitle;
-                      preppedHTMLstring += '<div>No matches for conversation threads on ' + serviceInfoObject.title + '... <br> &nbsp;&nbsp;&nbsp;<a target="_blank" href="' + submitUrl + '">' + submitTitle + '</a></div><br>';
+                      resultsHTML += '<div>No matches for conversations on ' + serviceInfoObject.title + '... <br> &nbsp;&nbsp;&nbsp;<a target="_blank" href="' + submitUrl + '">' + submitTitle + '</a></div><br>';
                     } else {
-                      preppedHTMLstring += '<div>No results for ' + serviceInfoObject.title + '</div>';
+                      resultsHTML += '<div>No results for ' + serviceInfoObject.title + '</div>';
                     }
                   }
                 }
+                console.log('console.log @totalRenders');
+                console.log(_this.totalRenders);
+                if (totalResults < 4 && _this.totalRenders < 3) {
+                  fixedViews.kiwiSlice.render(popupParcel, "open");
+                }
+                preppedHTMLstring += "<div style='width: 100%; text-align: center;'>" + resultsSummaryArray.join(" - ") + "</div><br>";
+                preppedHTMLstring += resultsHTML;
                 $("#resultsByService").html(preppedHTMLstring);
                 $(_this.DOMselector + " .hidden_listing").hide();
                 setTimeout(function() {
@@ -549,12 +574,24 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
             })(this),
             bind: (function(_this) {
               return function(popupParcel) {
-                var conversations_sortByPref, customSearchOpen, researchUrlOverrideButton, showHidden;
+                var conversations_sortByPref, customSearchOpen, jumpToService, researchUrlOverrideButton, showHidden;
                 showHidden = $(_this.DOMselector + " .showHidden");
                 researchUrlOverrideButton = $(_this.DOMselector + " #researchUrlOverride");
                 conversations_sortByPref = $(_this.DOMselector + " .conversations_sortByPref");
                 customSearchOpen = $(_this.DOMselector + " .customSearchOpen");
-                _this.elsToUnbind.concat([conversations_sortByPref, showHidden, researchUrlOverrideButton, customSearchOpen]);
+                jumpToService = $("#resultsByService .jumpTo");
+                _this.elsToUnbind = _this.elsToUnbind.concat(conversations_sortByPref, showHidden, researchUrlOverrideButton, customSearchOpen, jumpToService);
+                jumpToService.bind('click', function(ev) {
+                  var offsetBy, pxFromTop, serviceIndex;
+                  console.log("jumpToService.bind 'click', (ev) ->");
+                  serviceIndex = parseInt($(ev.target).data('serviceindex'));
+                  console.log(serviceIndex);
+                  pxFromTop = $($("#resultsByService .serviceResultsHeaderBar")[serviceIndex]).offset().top;
+                  console.log(pxFromTop);
+                  offsetBy = $($("#resultsByService .serviceResultsHeaderBar")[serviceIndex]).outerHeight() + 40;
+                  console.log(offsetBy);
+                  return $('body,html').scrollTop(pxFromTop - offsetBy);
+                });
                 customSearchOpen.bind('click', function() {
                   return $("#customSearchQueryInput").click();
                 });
@@ -567,15 +604,15 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
                 });
                 showHidden.bind('click', function(ev) {
                   var serviceName;
-                  console.log("showHidden.bind 'click', (ev) -> ");
-                  console.debug(ev);
+                  console.log("showHidden.bind 'click', (ev)3232 -> ");
                   serviceName = $(ev.target).data('servicename');
+                  console.log($(ev.target).data('servicename'));
                   $(_this.DOMselector + " .resultsBox__" + serviceName + " .hidden_listing").show(1200);
                   return $(ev.target).remove();
                 });
-                return conversations_sortByPref.bind('change', function() {
+                return conversations_sortByPref.bind('change', function(ev) {
                   var parcel;
-                  popupParcel.kiwi_userPreferences.sortByPref = conversations_sortByPref.val();
+                  popupParcel.kiwi_userPreferences.sortByPref = $(ev.target).val();
                   parcel = {
                     refreshView: 'conversations',
                     keyName: 'kiwi_userPreferences',
@@ -665,7 +702,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
                     activeCheck = "";
                     notActiveCheck = " checked='checked' ";
                   }
-                  servicesHtml += '<br> <div class="serviceListing"> <table><tbody><tr> <td class="upDownButtons">';
+                  servicesHtml += '<br> <div class="serviceListing listing"> <table><tbody><tr> <td class="upDownButtons">';
                   if (index !== 0) {
                     servicesHtml += '<span class="glyphicon glyphicon-chevron-up" id="' + service.name + '_moveServiceUp" aria-hidden="true"></span>';
                   }
@@ -696,7 +733,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
                 saveButtons.attr('disabled', 'disabled');
                 autoTimerRadios = $(_this.DOMselector + " input:radio[name='researchAutoOffType']");
                 allInputs = $(_this.DOMselector + ' input');
-                _this.elsToUnbind.concat([allInputs, saveButtons, autoTimerRadios]);
+                _this.elsToUnbind = _this.elsToUnbind.concat(allInputs, saveButtons, autoTimerRadios);
                 allInputs.bind('change', function() {
                   return $(".userPreferencesSave").removeAttr('disabled');
                 });
@@ -987,7 +1024,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
               return function(popupParcel) {
                 var elActivateTransition;
                 elActivateTransition = $(_this.DOMselector + " #sliceActivateTransition");
-                _this.elsToUnbind.concat([elActivateTransition]);
+                _this.elsToUnbind = _this.elsToUnbind.concat(elActivateTransition);
                 elActivateTransition.bind('mouseover', function(ev) {
                   return elActivateTransition.addClass('rotateClockwiseFull');
                 });
@@ -1006,9 +1043,8 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
               return function(popupParcel) {
                 var kiwiSliceHTML;
                 console.log('popup::painting ' + _this.name);
-                kiwiSliceHTML = '<div id="transition_open_showMe" style=" position: fixed; bottom: 24px; right: 62px; padding: 9px; padding-right: 26px; opacity: 1; box-shadow: rgb(195, 232, 148) 0px 0px 0px 2px inset; border: 1px solid rgba(20, 86, 15, 0.87); border-radius: 4px; background-color: white;"> <button type="button" class=" goTo_creditsView btn btn-mini btn-default">credits</button> <button class=" btn btn-mini btn-default" style="" class="">newsletter</button> <button class=" btn btn-mini btn-default" id="clearKiwiURLCache">clear cache</button> <button class=" btn btn-mini btn-default" id="refreshURLresults">refresh</button> </div> <div id="sliceActivateTransition" style="position:fixed; bottom: 15px; right: 15px; "> <img style="width: 66px; height: 66px;" src="symmetricKiwi.png" /> </div>';
-                $(_this.DOMselector).html(kiwiSliceHTML);
-                return console.log(kiwiSliceHTML);
+                kiwiSliceHTML = '<div id="transition_open_showMe" class="evenlySpacedContainer kiwiSliceOpenPlatter"> <button type="button" class=" goTo_creditsView btn btn-mini btn-default">credits</button> <button class=" btn btn-mini btn-default" style="" class="">MetaFruit <span class="glyphicon glyphicon-apple"></span></button> <button class=" btn btn-mini btn-default" id="clearKiwiURLCache">clear cache</button> <button class=" btn btn-mini btn-default" id="refreshURLresults">refresh</button> </div> <div id="sliceActivateTransition" style="position:fixed; bottom: 15px; right: 15px; "> <img style="width: 66px; height: 66px;" src="symmetricKiwi.png" /> </div>';
+                return $(_this.DOMselector).html(kiwiSliceHTML);
               };
             })(this),
             bind: (function(_this) {
@@ -1018,7 +1054,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
                 elActivateTransition = $(_this.DOMselector + " #sliceActivateTransition");
                 clearKiwiURLCacheButton = $(_this.DOMselector + " #clearKiwiURLCache");
                 refreshURLresultsButton = $(_this.DOMselector + " #refreshURLresults");
-                _this.elsToUnbind.concat([elActivateTransition, refreshURLresultsButton, clearKiwiURLCacheButton]);
+                _this.elsToUnbind = _this.elsToUnbind.concat(elActivateTransition, refreshURLresultsButton, clearKiwiURLCacheButton);
                 refreshURLresultsButton.bind('click', function() {
                   var parcel;
                   parcel = {
@@ -1084,7 +1120,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
                   return __renderStates__callback(popupParcel, renderState);
                 }
               });
-              $(_this.DOMselector).prepend('<div id="transition_open_showMe" style=" position: fixed; bottom: 24px; right: 62px; padding: 9px; padding-right: 26px; opacity: 0; box-shadow: rgb(195, 232, 148) 0px 0px 0px 2px inset; border: 1px solid rgba(20, 86, 15, 0.87); border-radius: 4px; background-color: white; "> <button type="button" class="goTo_creditsView btn btn-mini btn-default ">credits</button> <button class="btn btn-mini btn-default " style="" class="">newsletter</button> <button class="btn btn-mini btn-default " id="clearKiwiURLCache">clear cache</button> <button class="btn btn-mini btn-default " id="refreshURLresults">refresh</button> </div>');
+              $(_this.DOMselector).prepend('<div id="transition_open_showMe" class="evenlySpacedContainer kiwiSliceOpenPlatter" style="opacity: 0;"> <button type="button" class="goTo_creditsView btn btn-mini btn-default ">credits</button> <button class="btn btn-mini btn-default " style="" class="">MetaFruit <span class="glyphicon glyphicon-apple"></span></button> <button class="btn btn-mini btn-default " id="clearKiwiURLCache">clear cache</button> <button class="btn btn-mini btn-default " id="refreshURLresults">refresh</button> </div>');
               return $(_this.DOMselector + " #transition_open_showMe").animate({
                 'opacity': 1
               }, 499);
@@ -1117,7 +1153,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
           selectedString_attention = '';
           selectedString_recency = 'selected';
         }
-        preppedHTMLstring += '<div style="float:right;">&nbsp;&nbsp; sorted by: <select class="conversations_sortByPref"> <option ' + selectedString_attention + ' id="_attention" value="attention">attention</option> <option ' + selectedString_recency + ' id="_recency" value="recency">recency</option> </select> </div> </div>';
+        preppedHTMLstring += '<div style="float:right; padding-top: 9px;">&nbsp;&nbsp; sorted by: <select class="conversations_sortByPref"> <option ' + selectedString_attention + ' id="_attention" value="attention">attention</option> <option ' + selectedString_recency + ' id="_recency" value="recency">recency</option> </select> </div> </div>';
         if ((service_PreppedResults != null) && service_PreppedResults.length > 0) {
           preppedHTMLstring += 'Searched for: "<strong>' + service_PreppedResults[0].kiwi_searchedFor + '</strong>"<br>';
         }
@@ -1180,7 +1216,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
         selectedString_attention = '';
         selectedString_recency = 'selected';
       }
-      preppedHTMLstring += '<div style="float:right;"> &nbsp;&nbsp sorted by: <select class="conversations_sortByPref"> <option ' + selectedString_attention + ' id="_attention" value="attention">attention</option> <option ' + selectedString_recency + ' id="_recency" value="recency">recency</option> </select></div> </div>';
+      preppedHTMLstring += '<div style="float:right; padding-top:9px;"> &nbsp;&nbsp sorted by: <select class="conversations_sortByPref"> <option ' + selectedString_attention + ' id="_attention" value="attention">attention</option> <option ' + selectedString_recency + ' id="_recency" value="recency">recency</option> </select></div> </div>';
       if (service_PreppedResults.length < 1) {
         preppedHTMLstring += ' no results <br>';
         return preppedHTMLstring;
@@ -1237,7 +1273,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
         } else {
           listingClass = '';
         }
-        preppedHTMLstring += '<div class="showFuzzyMatches ' + listingClass + '" style="position:relative;">fuzzy matches: <br></div> <span class="fuzzyMatches">';
+        preppedHTMLstring += '<div class="showFuzzyMatches ' + listingClass + '" style="position:relative;"> fuzzy matches: <br></div> <span class="fuzzyMatches">';
         console.log('popup::fuzzy matches 12312312 ' + serviceInfoObject.name);
         for (index = _j = 0, _len1 = service_PreppedResults.length; _j < _len1; index = ++_j) {
           listing = service_PreppedResults[index];

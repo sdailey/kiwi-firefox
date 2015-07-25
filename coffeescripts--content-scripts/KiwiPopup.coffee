@@ -35,6 +35,9 @@ $().ready( ->
     #   preferencesOnlyPage = true
     #   switchViews.userPreferences.render(popupParcel)
     #   return 0
+    
+    for viewName, view of fixedViews
+      view.init(popupParcel)
 
     # views.userPreferences.render(popupParcel)
     if popupParcel.view? and switchViews[popupParcel.view]?
@@ -43,15 +46,13 @@ $().ready( ->
     else
       switchViews.conversations.render(popupParcel)
       
-    for viewName, view of fixedViews
-      view.init(popupParcel)
 
   class Widget # basic building block
     constructor: (@name, @parentView, @__renderStates__) ->
       @elsToUnbind = []
       
       @DOMselector = @parentView.DOMselector + " #" + @name + "_Widget"
-      
+      @totalRenders = 0
       @bindAllGoToViewButtons = (viewData) =>
         console.log 'popup::@bindAllGoToViewButtons = (viewData) =>'
         console.log @DOMname
@@ -69,17 +70,18 @@ $().ready( ->
           el.unbind()
         @elsToUnbind = []
         
-      @render = (renderState, popupParcel) =>
-        @unbindWidget(@name)
-        
-        @renderStates[renderState].paint(popupParcel)
-        
-        @bindAllGoToViewButtons(popupParcel)
-        
-        @renderStates[renderState].bind(popupParcel)
       
       @renderStates = @__renderStates__()
       return @
+    
+    render: (renderState, popupParcel) =>
+      @unbindWidget(@name)
+      @totalRenders++
+      @renderStates[renderState].paint(popupParcel)
+      
+      @bindAllGoToViewButtons(popupParcel)
+      
+      @renderStates[renderState].bind(popupParcel)
       
   class CustomSearch extends Widget
     constructor: (@name, @parentView, @widgetOpenBool) ->
@@ -135,7 +137,7 @@ $().ready( ->
           previousSearchLink = $("#openPreviousSearch")
           clearPreviousSearch = $("#clearPreviousSearch")
           
-          @elsToUnbind.concat [inputSearchQueryInput, previousSearchLink, clearPreviousSearch]
+          @elsToUnbind = @elsToUnbind.concat inputSearchQueryInput, previousSearchLink, clearPreviousSearch
           
           previousSearchLink.bind 'click', ->
             $("#customSearchQueryInput").click()
@@ -244,30 +246,35 @@ $().ready( ->
             <div class="notFixed"></div>
             <div id="customSearchResults"></div>
               '
-              
+            
+          resultsSummaryArray = []
           customSearchResultsHTML = ""
           if popupParcel.kiwi_customSearchResults? and popupParcel.kiwi_customSearchResults.queryString? and 
               popupParcel.kiwi_customSearchResults.queryString != ''
               
-            for serviceInfoObject in popupParcel.kiwi_servicesInfo
+            for serviceInfoObject, index in popupParcel.kiwi_servicesInfo
               
               if popupParcel.kiwi_customSearchResults.servicesSearched[serviceInfoObject.name]?
                 
                 service_PreppedResults = popupParcel.kiwi_customSearchResults.servicesSearched[serviceInfoObject.name].results
+                
+                resultsSummaryArray.push("<a class='jumpTo' data-serviceindex='" + index + "'>" + serviceInfoObject.title + " (" + service_PreppedResults.length + ")</a>")
                 
                 customSearchResultsHTML += tailorResults[serviceInfoObject.name](serviceInfoObject, service_PreppedResults, popupParcel.kiwi_userPreferences)
                 
                 if service_PreppedResults.length > 14
                   customSearchResultsHTML += '<div class="listing showHidden" data-servicename="' + serviceInfoObject.name + '"> show remaining ' + (service_PreppedResults.length - 11) + ' results</div>'
               else
-                customSearchResultsHTML += '<br>No results for ' + serviceInfoObject.name + '<br>'
+                customSearchResultsHTML += '<br>No results for ' + serviceInfoObject.title + '<br>'
               
             # customSearchResultsHTML += '</div>'
             
           else
             customSearchResultsHTML += '<div id="customSearchResultsDrop"><br>No results to show... make a search! :) </div><br>'
           
-          customSearchResultsHTML += "<br><div class='serviceResultsTitles serviceResultsHeaderBar'>Original results for the visited URL below:</div>"
+          customSearchResultsHTML = "<div style='width: 100%; text-align: center;'>" + resultsSummaryArray.join(" - ") + "</div>" + customSearchResultsHTML
+          
+          customSearchResultsHTML += "<br>"
           
           $(@DOMselector).html(openedCustomSearchHTML)
           
@@ -302,14 +309,23 @@ $().ready( ->
           
           showHidden = $(@DOMselector + " .showHidden")
           
-          @elsToUnbind.concat [
-            customSearchQueryInput, closeWidget, customSearchQuerySubmit, elsServicesButtons, 
-            customSearch_sortByPref, showHidden
-          ]
+          jumpToServiceCustomResults = $("#customSearchResults .jumpTo")
+          
+          @elsToUnbind = @elsToUnbind.concat(customSearchQueryInput, closeWidget, customSearchQuerySubmit, elsServicesButtons, 
+            customSearch_sortByPref, showHidden, jumpToServiceCustomResults)
+          
+          jumpToServiceCustomResults.bind 'click', (ev) ->
+            serviceIndex = parseInt($(ev.target).data('serviceindex'))
+            
+            pxFromTop = $($("#customSearchResults .serviceResultsHeaderBar")[serviceIndex]).offset().top
+            
+            offsetBy = $($("#customSearchResults .serviceResultsHeaderBar")[serviceIndex]).outerHeight() + 40
+            
+            $('body,html').scrollTop(pxFromTop - offsetBy)
           
           showHidden.bind 'click', (ev) =>
             console.log "showHidden.bind 'click', (ev) ->"
-            console.debug ev
+            # console.debug ev
             serviceName = $(ev.target).data('servicename')
             # resultsBox__" + serviceInfoObject.name + 
             console.log @DOMselector + " .resultsBox__" + serviceName + " .hidden_listing"
@@ -336,9 +352,9 @@ $().ready( ->
               $(ev.target).blur()
             )
           
-          customSearch_sortByPref.bind 'change', ->
-            
-            popupParcel.kiwi_userPreferences.sortByPref = customSearch_sortByPref.val()
+          customSearch_sortByPref.bind 'change', (ev) ->
+            popupParcel.kiwi_userPreferences.sortByPref = $(ev.target).val()
+            # console.log 'registering change ' + popupParcel.kiwi_userPreferences.sortByPref 
             
             parcel =
               refreshView: 'conversations'
@@ -385,7 +401,8 @@ $().ready( ->
               sendParcel(parcel)
           
           customSearchQueryInput.keypress (event) ->
-            if event.charCode == 13 # (enter)
+            console.log 'asdfasdfas ' + event.charCode
+            if event.charCode == 0 # (enter) // FF and Chrome differ on keycodes?
               sendSearch()
           
           customSearchQuerySubmit.bind 'click', =>
@@ -405,7 +422,7 @@ $().ready( ->
   class View # basic building block
     constructor: (@name, @__renderStates__) ->
       @elsToUnbind = []
-      
+      @totalRenders = 0 
       @DOMselector = "#" + @name + "_View"
       
       @Widgets = {}
@@ -433,8 +450,8 @@ $().ready( ->
       return @
       
     render: (popupParcel, renderState = "__normal__") =>
-      
       @unbindView(@name)
+      @totalRenders++
       if !renderState? and !@renderStates.__normal__?
         console.log 'popup::ERROR: must declare renderState for view ' + @name + ' since __normal__ undefined'
         
@@ -508,27 +525,42 @@ $().ready( ->
           
           preppedHTMLstring = '<h3 style="position:relative; top:-10px;">Results for this URL:</h3>'
           
-          for serviceInfoObject in popupParcel.kiwi_servicesInfo
+          resultsSummaryArray = []
+          
+          totalResults = 0
+          
+          resultsHTML = ""
+          for serviceInfoObject, index in popupParcel.kiwi_servicesInfo
             
             if popupParcel.allPreppedResults[serviceInfoObject.name]? and popupParcel.allPreppedResults[serviceInfoObject.name].service_PreppedResults.length > 0
               
               service_PreppedResults = popupParcel.allPreppedResults[serviceInfoObject.name].service_PreppedResults
               
-              preppedHTMLstring += tailorResults[serviceInfoObject.name](serviceInfoObject,service_PreppedResults, popupParcel.kiwi_userPreferences)
+              resultsSummaryArray.push("<a class='jumpTo' data-serviceindex='" + index + "'>" + serviceInfoObject.title + " (" + service_PreppedResults.length + ")</a>")
+              
+              totalResults += service_PreppedResults.length
+              
+              resultsHTML += tailorResults[serviceInfoObject.name](serviceInfoObject,service_PreppedResults, popupParcel.kiwi_userPreferences)
               
               if service_PreppedResults.length > 14
-                preppedHTMLstring += '<div class="listing showHidden" data-servicename="' + serviceInfoObject.name + '"> show remaining ' + (service_PreppedResults.length - 11) + ' results</div>'
+                resultsHTML += '<div class="listing showHidden" data-servicename="' + serviceInfoObject.name + '"> show remaining ' + (service_PreppedResults.length - 11) + ' results</div>'
             else
               if serviceInfoObject.submitTitle?
                 submitUrl = serviceInfoObject.submitUrl
                 submitTitle = serviceInfoObject.submitTitle
-                preppedHTMLstring += '<div>No matches for conversation threads on ' + serviceInfoObject.title + '... <br> 
+                resultsHTML += '<div>No matches for conversations on ' + serviceInfoObject.title + '... <br> 
                   &nbsp;&nbsp;&nbsp;<a target="_blank" href="' + submitUrl + '">' + submitTitle + '</a></div><br>'
                 
               else
                 
-                preppedHTMLstring += '<div>No results for ' + serviceInfoObject.title + '</div>'
+                resultsHTML += '<div>No results for ' + serviceInfoObject.title + '</div>'
+          console.log 'console.log @totalRenders'
+          console.log @totalRenders
+          if totalResults < 4 and @totalRenders < 3
+            fixedViews.kiwiSlice.render(popupParcel, "open")
           
+          preppedHTMLstring += "<div style='width: 100%; text-align: center;'>" + resultsSummaryArray.join(" - ") + "</div><br>"
+          preppedHTMLstring += resultsHTML
           $("#resultsByService").html(preppedHTMLstring)
           $(@DOMselector + " .hidden_listing").hide()
           
@@ -555,10 +587,26 @@ $().ready( ->
           
           customSearchOpen = $(@DOMselector + " .customSearchOpen")
           
-          @elsToUnbind.concat [
-            conversations_sortByPref, showHidden, researchUrlOverrideButton, customSearchOpen
-          ]
+          jumpToService = $("#resultsByService .jumpTo")
           
+          @elsToUnbind = @elsToUnbind.concat conversations_sortByPref, showHidden, researchUrlOverrideButton, customSearchOpen, jumpToService
+          
+            
+          jumpToService.bind 'click', (ev) ->
+            
+            console.log "jumpToService.bind 'click', (ev) ->"
+            serviceIndex = parseInt($(ev.target).data('serviceindex'))
+            
+            console.log serviceIndex
+            
+            pxFromTop = $($("#resultsByService .serviceResultsHeaderBar")[serviceIndex]).offset().top
+            console.log pxFromTop
+            
+            offsetBy = $($("#resultsByService .serviceResultsHeaderBar")[serviceIndex]).outerHeight() + 40
+            console.log offsetBy
+            $('body,html').scrollTop(pxFromTop - offsetBy)
+            
+            
           customSearchOpen.bind 'click', ->
             $("#customSearchQueryInput").click()
           
@@ -568,15 +616,17 @@ $().ready( ->
             sendParcel(parcel)
           
           showHidden.bind 'click', (ev) =>
-            console.log "showHidden.bind 'click', (ev) -> "
-            console.debug ev
+            console.log "showHidden.bind 'click', (ev)3232 -> "
+            # console.debug ev
+            # console.log ev
             serviceName = $(ev.target).data('servicename')
+            console.log $(ev.target).data('servicename')
             $(@DOMselector + " .resultsBox__" + serviceName + " .hidden_listing").show(1200)
             $(ev.target).remove()
             
-          conversations_sortByPref.bind 'change', ->
+          conversations_sortByPref.bind 'change', (ev) ->
             
-            popupParcel.kiwi_userPreferences.sortByPref = conversations_sortByPref.val()
+            popupParcel.kiwi_userPreferences.sortByPref = $(ev.target).val()
             
             parcel =
               refreshView: 'conversations'
@@ -669,7 +719,7 @@ $().ready( ->
               notActiveCheck = " checked='checked' "
             
             servicesHtml += '<br>
-              <div class="serviceListing">
+              <div class="serviceListing listing">
               <table><tbody><tr>
               <td class="upDownButtons">'
             if index != 0
@@ -731,7 +781,7 @@ $().ready( ->
           
           allInputs = $(@DOMselector + ' input')
           
-          @elsToUnbind.concat [allInputs, saveButtons, autoTimerRadios]
+          @elsToUnbind = @elsToUnbind.concat allInputs, saveButtons, autoTimerRadios
           
           allInputs.bind 'change', ->
             $(".userPreferencesSave").removeAttr('disabled')
@@ -962,7 +1012,7 @@ $().ready( ->
           
           elActivateTransition = $(@DOMselector + " #sliceActivateTransition")
           
-          @elsToUnbind.concat [elActivateTransition]
+          @elsToUnbind = @elsToUnbind.concat elActivateTransition
           
           elActivateTransition.bind 'mouseover', (ev) =>
             elActivateTransition.addClass('rotateClockwiseFull')
@@ -978,28 +1028,18 @@ $().ready( ->
         
         paint: (popupParcel) =>
           console.log 'popup::painting ' + @name
-          kiwiSliceHTML = '<div id="transition_open_showMe" style="  
-                position: fixed;
-                bottom: 24px;
-                right: 62px;
-                padding: 9px;
-                padding-right: 26px;
-                opacity: 1;
-                box-shadow: rgb(195, 232, 148) 0px 0px 0px 2px inset;
-                border: 1px solid rgba(20, 86, 15, 0.87);
-                border-radius: 4px;
-                background-color: white;">
-              <button type="button" class=" goTo_creditsView btn btn-mini btn-default">credits</button> 
-              <button class=" btn btn-mini btn-default" style="" class="">newsletter</button> 
-              <button class=" btn btn-mini btn-default" id="clearKiwiURLCache">clear cache</button>
-              <button class=" btn btn-mini btn-default" id="refreshURLresults">refresh</button>
-            </div>
-            <div id="sliceActivateTransition" style="position:fixed; bottom: 15px; right: 15px; ">
-              <img style="width: 66px; height: 66px;" src="symmetricKiwi.png" /> 
-            </div>'
+          kiwiSliceHTML = '<div id="transition_open_showMe" class="evenlySpacedContainer kiwiSliceOpenPlatter">
+            <button type="button" class=" goTo_creditsView btn btn-mini btn-default">credits</button> 
+            <button class=" btn btn-mini btn-default" style="" class="">MetaFruit <span class="glyphicon glyphicon-apple"></span></button> 
+            <button class=" btn btn-mini btn-default" id="clearKiwiURLCache">clear cache</button>
+            <button class=" btn btn-mini btn-default" id="refreshURLresults">refresh</button>
+          </div>
+          <div id="sliceActivateTransition" style="position:fixed; bottom: 15px; right: 15px; ">
+            <img style="width: 66px; height: 66px;" src="symmetricKiwi.png" /> 
+          </div>'
           
           $(@DOMselector).html(kiwiSliceHTML)
-          console.log kiwiSliceHTML
+          # console.log kiwiSliceHTML
           
             
           
@@ -1011,7 +1051,7 @@ $().ready( ->
           
           refreshURLresultsButton = $(@DOMselector + " #refreshURLresults")
           
-          @elsToUnbind.concat [elActivateTransition, refreshURLresultsButton, clearKiwiURLCacheButton]
+          @elsToUnbind = @elsToUnbind.concat elActivateTransition, refreshURLresultsButton, clearKiwiURLCacheButton
           
           refreshURLresultsButton.bind 'click', ->
             parcel =
@@ -1061,24 +1101,14 @@ $().ready( ->
             console.log 'popup::we are done with animation'
             __renderStates__callback(popupParcel, renderState)
         })
-        $(@DOMselector).prepend('<div id="transition_open_showMe" style="
-                  position: fixed;
-                  bottom: 24px;
-                  right: 62px;
-                  padding: 9px;
-                  padding-right: 26px;
-                  opacity: 0;
-                  box-shadow: rgb(195, 232, 148) 0px 0px 0px 2px inset;
-                  border: 1px solid rgba(20, 86, 15, 0.87);
-                  border-radius: 4px;
-                  background-color: white;
-              ">
-              <button type="button" class="goTo_creditsView btn btn-mini btn-default ">credits</button> 
-              <button class="btn btn-mini btn-default " style="" class="">newsletter</button> 
-              <button class="btn btn-mini btn-default " id="clearKiwiURLCache">clear cache</button>
-              <button class="btn btn-mini btn-default " id="refreshURLresults">refresh</button>
-            
-            </div>')
+        
+        $(@DOMselector).prepend('<div id="transition_open_showMe" class="evenlySpacedContainer kiwiSliceOpenPlatter" style="opacity: 0;">
+            <button type="button" class="goTo_creditsView btn btn-mini btn-default ">credits</button> 
+            <button class="btn btn-mini btn-default " style="" class="">MetaFruit <span class="glyphicon glyphicon-apple"></span></button> 
+            <button class="btn btn-mini btn-default " id="clearKiwiURLCache">clear cache</button>
+            <button class="btn btn-mini btn-default " id="refreshURLresults">refresh</button>
+          
+          </div>')
         # setTimeout =>
         $(@DOMselector + " #transition_open_showMe").animate({'opacity':1}, 499)
           # , 200
@@ -1109,8 +1139,8 @@ $().ready( ->
       else
         selectedString_attention = ''
         selectedString_recency = 'selected'
-        
-      preppedHTMLstring += '<div style="float:right;">&nbsp;&nbsp; sorted by: 
+         
+      preppedHTMLstring += '<div style="float:right; padding-top: 9px;">&nbsp;&nbsp; sorted by: 
           <select class="conversations_sortByPref">
             <option ' + selectedString_attention + ' id="_attention" value="attention">attention</option>
             <option ' + selectedString_recency + ' id="_recency" value="recency">recency</option>
@@ -1223,7 +1253,7 @@ $().ready( ->
       selectedString_attention = ''
       selectedString_recency = 'selected'
       
-    preppedHTMLstring += '<div style="float:right;"> &nbsp;&nbsp sorted by: <select class="conversations_sortByPref">
+    preppedHTMLstring += '<div style="float:right; padding-top:9px;"> &nbsp;&nbsp sorted by: <select class="conversations_sortByPref">
           <option ' + selectedString_attention + ' id="_attention" value="attention">attention</option>
           <option ' + selectedString_recency + ' id="_recency" value="recency">recency</option>
         </select></div>
@@ -1304,7 +1334,7 @@ $().ready( ->
         listingClass = ''
         
       # listingClass = if nonFuzzyItemCounter > 10 then ' hidden_listing ' else ''
-      preppedHTMLstring += '<div class="showFuzzyMatches ' + listingClass + '" style="position:relative;">fuzzy matches: <br></div>
+      preppedHTMLstring += '<div class="showFuzzyMatches ' + listingClass + '" style="position:relative;"> fuzzy matches: <br></div>
         <span class="fuzzyMatches">'
       console.log 'popup::fuzzy matches 12312312 ' + serviceInfoObject.name
       

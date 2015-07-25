@@ -22,6 +22,7 @@ _ = require('./vendor/Underscore1-8-3')
 # `
 # (underscore).call(this)
 # `
+
 console.log 'CryptoJS.SHA512("adfasdf")'
 console.log CryptoJS.SHA512("adfasdf")
 

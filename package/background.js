@@ -82,16 +82,6 @@
     return hash;
   };
 
-  iconButtonClicked = function(iconButtonState) {
-    if (iconButtonState.checked) {
-      kiwi_iconButton.badgeColor = "#AA00AA";
-    } else {
-      kiwi_iconButton.badgeColor = "#00AAAA";
-    }
-    kiwiPP_request_popupParcel();
-    return kiwi_panel.show();
-  };
-
   kiwi_iconButton = IconButton({
     id: "kiwi-button",
     label: "Kiwi Conversations",
@@ -106,6 +96,18 @@
       return iconButtonClicked(iconButtonState);
     }
   });
+
+  iconButtonClicked = function(iconButtonState) {
+    if (iconButtonState.checked) {
+      kiwi_iconButton.badgeColor = "#AA00AA";
+    } else {
+      kiwi_iconButton.badgeColor = "#00AAAA";
+    }
+    kiwiPP_request_popupParcel();
+    return kiwi_panel.show({
+      'position': kiwi_iconButton
+    });
+  };
 
   kiwiPP_request_popupParcel = function(dataFromPopup) {
     var newResultsBool, parcel, preppedResponsesInPopupParcel, preppedResponsesInTempResponsesStore, service, serviceName, _ref, _ref1;
@@ -152,8 +154,8 @@
   };
 
   kiwi_panel = Panel({
-    width: 460,
-    height: 580,
+    width: 500,
+    height: 640,
     contentURL: "./popup.html",
     contentStyleFile: ["./bootstrap-3.3.5-dist/css/bootstrap.min.css", "./bootstrap-3.3.5-dist/css/bootstrap-theme.min.css", "./behigh-bootstrap_dropdown_enhancement/css/dropdowns-enhancement.min.css"],
     contentScriptFile: ["./vendor/jquery-2.1.4.min.js", "./vendor/Underscore1-8-3.js", "./behigh-bootstrap_dropdown_enhancement/js/dropdowns-enhancement.js", "./KiwiPopup.js"]
@@ -396,11 +398,17 @@
   };
 
   _save_a_la_carte = function(parcel) {
+    var tempResponsesStoreServices;
     firefoxStorage.storage[parcel.keyName] = parcel.newValue;
-    if (parcel.refreshView != null) {
-      return _set_popupParcel(tempResponsesStore.services, tabUrl, true, parcel.refreshView);
+    if ((tempResponsesStore == null) || (tempResponsesStore.services == null)) {
+      tempResponsesStoreServices = {};
     } else {
-      return _set_popupParcel(tempResponsesStore.services, tabUrl, false);
+      tempResponsesStoreServices = tempResponsesStore.services;
+    }
+    if (parcel.refreshView != null) {
+      return _set_popupParcel(tempResponsesStoreServices, tabUrl, true, parcel.refreshView);
+    } else {
+      return _set_popupParcel(tempResponsesStoreServices, tabUrl, false);
     }
   };
 
@@ -793,6 +801,7 @@
     }
     setObj_popupParcel = {};
     setObj_popupParcel.forUrl = tabUrl;
+    console.log('12');
     if (firefoxStorage.storage['kiwi_userPreferences'] == null) {
       setObj_popupParcel.kiwi_userPreferences = defaultUserPreferences;
     } else {
@@ -803,6 +812,7 @@
     } else {
       setObj_popupParcel.kiwi_servicesInfo = firefoxStorage.storage['kiwi_servicesInfo'];
     }
+    console.log('123');
     if (renderView !== null) {
       setObj_popupParcel.view = renderView;
     }
@@ -812,6 +822,7 @@
       setObj_popupParcel.kiwi_alerts = firefoxStorage.storage['kiwi_alerts'];
     }
     setObj_popupParcel.kiwi_customSearchResults = kiwi_customSearchResults;
+    console.log('124');
     if (setWith_urlResults == null) {
       return 0;
     } else {
@@ -824,6 +835,7 @@
     } else {
       setObj_popupParcel.tabInfo = null;
     }
+    console.log('125');
     setObj_popupParcel.urlBlocked = false;
     isUrlBlocked = is_url_blocked(firefoxStorage.storage['kiwi_userPreferences'].urlSubstring_blacklists, tabUrl);
     if (isUrlBlocked === true) {
@@ -835,6 +847,7 @@
       setObj_popupParcel.oldUrl = false;
     }
     popupParcel = setObj_popupParcel;
+    console.log('16');
     console.log(popupParcel);
     if (sendPopupParcel) {
       console.log('trying to send');

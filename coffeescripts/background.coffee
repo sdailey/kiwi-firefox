@@ -96,16 +96,6 @@ reduceHashByHalf = (hash, reducedByAFactorOf = 1) ->
     
   return hash
 
-iconButtonClicked = (iconButtonState) ->
-  # kiwi_iconButton.badge = iconButtonState.badge + 1
-  
-  if (iconButtonState.checked) 
-    kiwi_iconButton.badgeColor = "#AA00AA"
-  else
-    kiwi_iconButton.badgeColor = "#00AAAA"
-  
-  kiwiPP_request_popupParcel()
-  kiwi_panel.show()
   
   
   
@@ -126,6 +116,16 @@ kiwi_iconButton = IconButton {
       iconButtonClicked(iconButtonState)
   }
 
+iconButtonClicked = (iconButtonState) ->
+  # kiwi_iconButton.badge = iconButtonState.badge + 1
+  
+  if (iconButtonState.checked) 
+    kiwi_iconButton.badgeColor = "#AA00AA"
+  else
+    kiwi_iconButton.badgeColor = "#00AAAA"
+  
+  kiwiPP_request_popupParcel()
+  kiwi_panel.show({'position':kiwi_iconButton})
 
     
     # <link rel="stylesheet" href="vendor/bootstrap-3.3.5-dist/css/bootstrap.min.css"></link>
@@ -182,8 +182,8 @@ kiwiPP_request_popupParcel = (dataFromPopup = {}) ->
       _set_popupParcel(tempResponsesStore.services, tabUrl, true)
 
 kiwi_panel = Panel({
-  width: 460,
-  height: 580, 
+  width: 500,
+  height: 640, 
   # contentURL: "https://en.wikipedia.org/w/index.php?title=Jetpack&useformat=mobile",
   contentURL: "./popup.html",
   contentStyleFile: [
@@ -495,10 +495,14 @@ _save_a_la_carte = (parcel) ->
   
   firefoxStorage.storage[parcel.keyName] = parcel.newValue
   
-  if parcel.refreshView?
-    _set_popupParcel(tempResponsesStore.services, tabUrl, true, parcel.refreshView)
+  if !tempResponsesStore? or !tempResponsesStore.services?
+    tempResponsesStoreServices = {}
   else
-    _set_popupParcel(tempResponsesStore.services, tabUrl, false)
+    tempResponsesStoreServices = tempResponsesStore.services
+  if parcel.refreshView?
+    _set_popupParcel(tempResponsesStoreServices, tabUrl, true, parcel.refreshView)
+  else
+    _set_popupParcel(tempResponsesStoreServices, tabUrl, false)
 
 
 
@@ -1032,7 +1036,7 @@ _set_popupParcel = (setWith_urlResults, forUrl, sendPopupParcel, renderView = nu
   setObj_popupParcel = {}
   
   setObj_popupParcel.forUrl = tabUrl
-  
+  console.log '12'
   
     
   if !firefoxStorage.storage['kiwi_userPreferences']?
@@ -1046,7 +1050,7 @@ _set_popupParcel = (setWith_urlResults, forUrl, sendPopupParcel, renderView = nu
     
   else
     setObj_popupParcel.kiwi_servicesInfo = firefoxStorage.storage['kiwi_servicesInfo']
-  
+  console.log '123'
   if renderView != null
     setObj_popupParcel.view = renderView
   
@@ -1058,7 +1062,7 @@ _set_popupParcel = (setWith_urlResults, forUrl, sendPopupParcel, renderView = nu
     setObj_popupParcel.kiwi_alerts = firefoxStorage.storage['kiwi_alerts']
     
   setObj_popupParcel.kiwi_customSearchResults = kiwi_customSearchResults
-  
+  console.log '124'
   if !setWith_urlResults?
     #console.log '_set_popupParcel called with undefined responses (not supposed to happen, ever)'
     return 0
@@ -1071,7 +1075,7 @@ _set_popupParcel = (setWith_urlResults, forUrl, sendPopupParcel, renderView = nu
     setObj_popupParcel.tabInfo.tabTitle = tabTitleObject.tabTitle
   else 
     setObj_popupParcel.tabInfo = null
-  
+  console.log '125'
   setObj_popupParcel.urlBlocked = false
   
   isUrlBlocked = is_url_blocked(firefoxStorage.storage['kiwi_userPreferences'].urlSubstring_blacklists, tabUrl)
@@ -1084,7 +1088,7 @@ _set_popupParcel = (setWith_urlResults, forUrl, sendPopupParcel, renderView = nu
     setObj_popupParcel.oldUrl = false
   
   popupParcel = setObj_popupParcel
-  
+  console.log '16'
   console.log popupParcel
   
   if sendPopupParcel
