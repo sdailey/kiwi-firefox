@@ -763,11 +763,11 @@ $().ready( ->
               console.log 'popup::trying to set with ' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting - or'
             
             
-          # servicesHtml += '<div class="serviceListing">
-              
-          #     add service! (tweet)
-              
-          #   </div>'
+          servicesHtml += "<div class='serviceListing listing' style='padding:15px; margin-top: 30px;'>
+            
+            Wouldn't it be awesome if we could add some more services to opt-in to?&nbsp;&nbsp; All that's needed are friendly APIs!&nbsp; <a href='https://twitter.com/spencenow' target='_blank'>Tweet me</a> if you're interested in adding one!
+            
+          </div>"
           
           $("#servicesInfoDrop").html(servicesHtml)
           
@@ -1030,7 +1030,7 @@ $().ready( ->
           console.log 'popup::painting ' + @name
           kiwiSliceHTML = '<div id="transition_open_showMe" class="evenlySpacedContainer kiwiSliceOpenPlatter">
             <button type="button" class=" goTo_creditsView btn btn-mini btn-default">credits</button> 
-            <button class=" btn btn-mini btn-default" style="" class="">MetaFruit <span class="glyphicon glyphicon-apple"></span></button> 
+            <a class=" btn btn-mini btn-default" style="" href="http://www.metafruit.com/kiwi/#carousel-example-generic">MetaFruit <span class="glyphicon glyphicon-apple"></span></a>
             <button class=" btn btn-mini btn-default" id="clearKiwiURLCache">clear cache</button>
             <button class=" btn btn-mini btn-default" id="refreshURLresults">refresh</button>
           </div>

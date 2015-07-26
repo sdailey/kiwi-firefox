@@ -723,6 +723,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
                     console.log('popup::trying to set with ' + service.notableConditions.hoursSincePosted + '"/> or fewer hours since posting - or');
                   }
                 }
+                servicesHtml += "<div class='serviceListing listing' style='padding:15px; margin-top: 30px;'> Wouldn't it be awesome if we could add some more services to opt-in to?&nbsp;&nbsp; All that's needed are friendly APIs!&nbsp; <a href='https://twitter.com/spencenow' target='_blank'>Tweet me</a> if you're interested in adding one! </div>";
                 return $("#servicesInfoDrop").html(servicesHtml);
               };
             })(this),
@@ -1043,7 +1044,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
               return function(popupParcel) {
                 var kiwiSliceHTML;
                 console.log('popup::painting ' + _this.name);
-                kiwiSliceHTML = '<div id="transition_open_showMe" class="evenlySpacedContainer kiwiSliceOpenPlatter"> <button type="button" class=" goTo_creditsView btn btn-mini btn-default">credits</button> <button class=" btn btn-mini btn-default" style="" class="">MetaFruit <span class="glyphicon glyphicon-apple"></span></button> <button class=" btn btn-mini btn-default" id="clearKiwiURLCache">clear cache</button> <button class=" btn btn-mini btn-default" id="refreshURLresults">refresh</button> </div> <div id="sliceActivateTransition" style="position:fixed; bottom: 15px; right: 15px; "> <img style="width: 66px; height: 66px;" src="symmetricKiwi.png" /> </div>';
+                kiwiSliceHTML = '<div id="transition_open_showMe" class="evenlySpacedContainer kiwiSliceOpenPlatter"> <button type="button" class=" goTo_creditsView btn btn-mini btn-default">credits</button> <a class=" btn btn-mini btn-default" style="" href="http://www.metafruit.com/kiwi/#carousel-example-generic">MetaFruit <span class="glyphicon glyphicon-apple"></span></a> <button class=" btn btn-mini btn-default" id="clearKiwiURLCache">clear cache</button> <button class=" btn btn-mini btn-default" id="refreshURLresults">refresh</button> </div> <div id="sliceActivateTransition" style="position:fixed; bottom: 15px; right: 15px; "> <img style="width: 66px; height: 66px;" src="symmetricKiwi.png" /> </div>';
                 return $(_this.DOMselector).html(kiwiSliceHTML);
               };
             })(this),
