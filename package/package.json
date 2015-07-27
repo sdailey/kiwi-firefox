@@ -1,7 +1,7 @@
 {
   "title": "Kiwi Conversations",
   "name": "kiwi-firefox",
-  "version": "0.0.1",
+  "version": "0.9.83",
   "description": "Kiwi Conversations searches community sites to find forum comment threads about the url you're visiting.",
   "main": "background.js",
   "author": "Spencer Dailey",
