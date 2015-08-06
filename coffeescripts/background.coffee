@@ -10,13 +10,13 @@ IconButton = require("sdk/ui/button/action").ActionButton
 
 { setTimeout, clearTimeout } = require("sdk/timers")
 
-CryptoJS = require("./vendor/CryptoJS").CryptoJS
+CryptoJS = require("./data/vendor/CryptoJS").CryptoJS
 
 # kiwi_popup = require('./KiwiPopup')
 
 Request = require("sdk/request").Request
 
-_ = require('./vendor/Underscore1-8-3')
+_ = require('./data/vendor/underscore-min')
 
 
 tabUrl = ''
@@ -186,18 +186,14 @@ kiwi_panel = Panel({
   height: 640, 
   # contentURL: "https://en.wikipedia.org/w/index.php?title=Jetpack&useformat=mobile",
   contentURL: "./popup.html",
-  contentStyleFile: [
-    "./bootstrap-3.3.5-dist/css/bootstrap.min.css",
-    "./bootstrap-3.3.5-dist/css/bootstrap-theme.min.css",
-    "./behigh-bootstrap_dropdown_enhancement/css/dropdowns-enhancement.min.css",
+  contentStyleFile: ["./bootstrap-3.3.5-dist/css/bootstrap.min.css", 
+    "./bootstrap-3.3.5-dist/css/bootstrap-theme.min.css", 
+    "./behigh-bootstrap_dropdown_enhancement/css/dropdowns-enhancement.min.css"
   ],
-  contentScriptFile: [
-    "./vendor/jquery-2.1.4.min.js",
-    "./vendor/Underscore1-8-3.js",
-    "./behigh-bootstrap_dropdown_enhancement/js/dropdowns-enhancement.js",
-    "./KiwiPopup.js",
-    
-  ]
+  contentScriptFile: ["./vendor/jquery-2.1.4.min.js", 
+    "./vendor/underscore-min.js", 
+    "./behigh-bootstrap_dropdown_enhancement/js/dropdowns-enhancement.js", 
+  "./KiwiPopup.js"]
 })
 
 
@@ -319,14 +315,25 @@ popupParcel = {}
 defaultUserPreferences = {
   
   fontSize: .8
-  researchModeOnOff: 'on'
+  researchModeOnOff: 'on' # or 'on'
   autoOffAtUTCmilliTimestamp: null
   autoOffTimerType: 'always' # 'custom','always','20','60'
   autoOffTimerValue: null
   
   sortByPref: 'attention' # 'recency'   # "attention" means 'comments' if story, 'points' if comment, 'clusterUrl' if news
   
-    # suggested values to all users
+  urlSubstring_whitelists:
+    anyMatch: []
+    beginsWith: []
+    endingIn: []
+    unless: [
+      # ['twitter.com/','/status/'] # unless /status/
+    ]
+    
+  
+    # suggested values to all users  -- any can be overriden with the "Research this URL" button
+      # unfortunately, because of Chrome's discouragement of storing sensitive 
+      # user info with chrome.storage, blacklists are fixed for now . see: https://news.ycombinator.com/item?id=9993030
   urlSubstring_blacklists: 
     anyMatch: [
       'facebook.com'
@@ -374,18 +381,24 @@ defaultUserPreferences = {
 }
 
 is_url_blocked = (blockedLists, url) ->
-  if blockedLists.anyMatch?
-    for urlSubstring in blockedLists.anyMatch
+  return doesURLmatchSubstringLists(blockedLists, url)
+
+is_url_whitelisted = (whiteLists, url) ->
+  return doesURLmatchSubstringLists(whiteLists, url)
+
+doesURLmatchSubstringLists = (urlSubstringLists, url) ->
+  if urlSubstringLists.anyMatch?
+    for urlSubstring in urlSubstringLists.anyMatch
       if url.indexOf(urlSubstring) != -1
         return true
   
-  if blockedLists.beginsWith?
-    for urlSubstring in blockedLists.beginsWith
+  if urlSubstringLists.beginsWith?
+    for urlSubstring in urlSubstringLists.beginsWith
       if url.indexOf(urlSubstring) == 0
         return true
-    
-  if blockedLists.endingIn?
-    for urlSubstring in blockedLists.endingIn
+  
+  if urlSubstringLists.endingIn?
+    for urlSubstring in urlSubstringLists.endingIn
       if url.indexOf(urlSubstring) == url.length - urlSubstring.length
         return true
         
@@ -393,13 +406,15 @@ is_url_blocked = (blockedLists, url) ->
       if url.indexOf(urlSubstring) == url.length - urlSubstring.length
         return true
     
-  if blockedLists.unless?
-    for urlSubstringArray in blockedLists.unless
+  if urlSubstringLists.unless?
+    for urlSubstringArray in urlSubstringLists.unless
       if url.indexOf(urlSubstringArray[0]) != -1
+        
         if url.indexOf(urlSubstringArray[1]) == -1
           return true
   
   return false
+
     
 defaultServicesInfo = [
     
@@ -645,13 +660,9 @@ getUrlResults_to_refreshBadgeIcon = (servicesInfo, currentUrl) ->
       tempResponsesStore.forUrl = currentUrl
       tempResponsesStore.services = kiwi_urlsResultsCache[currentUrl]
       
-      if popupOpen
-        sendPopupParcel = true
-      else
-        sendPopupParcel = false
       #console.log '#console.debug tempResponsesStore.services'
       #console.debug tempResponsesStore.services
-      _set_popupParcel(tempResponsesStore.services, currentUrl, sendPopupParcel)
+      _set_popupParcel(tempResponsesStore.services, currentUrl, true)
       
           
     else
@@ -1169,14 +1180,7 @@ setPreppedServiceResults = (responsePackage, servicesInfo) ->
     
     _save_historyBlob(kiwi_urlsResultsCache, tabUrl)
     
-    if popupOpen
-      sendPopupParcel = true
-      #console.log 'yolo 6 sendPopupParcel = true'
-    else
-      sendPopupParcel = false
-      #console.log 'yolo 6 sendPopupParcel = false'
-    
-    _set_popupParcel(kiwi_urlsResultsCache[tabUrl], tabUrl, sendPopupParcel)
+    _set_popupParcel(kiwi_urlsResultsCache[tabUrl], tabUrl, true)
     refreshBadge(servicesInfo, kiwi_urlsResultsCache[tabUrl])
     
   else
@@ -1197,32 +1201,47 @@ parseResults =
   reddit: (resultsObj, searchQueryString, serviceInfo, customSearchBool = false) ->
     
     matchedListings = []
-    #console.log 'reddit: (resultsObj) ->'
-    #console.debug resultsObj
-    if resultsObj.kind? and resultsObj.kind == "Listing" and resultsObj.data? and 
-        resultsObj.data.children? and resultsObj.data.children.length > 0
-      
-      for child in resultsObj.data.children
+    # console.log 'reddit: (resultsObj) ->'
+    # console.debug resultsObj
+    
+    # occasionally Reddit will decide to return an array instead of an object, so...
+      # in response to user's feedback, see: https://news.ycombinator.com/item?id=9994202
+    forEachQueryObject = (resultsObj, _matchedListings) ->
+    
+      if resultsObj.kind? and resultsObj.kind == "Listing" and resultsObj.data? and 
+          resultsObj.data.children? and resultsObj.data.children.length > 0
         
-        if child.data?
+        for child in resultsObj.data.children
           
-          listingKeys = ["subreddit",'url',"score",'domain','gilded',"over_18","author","hidden","downs","permalink","created","title","created_utc","ups","num_comments"]
-          
-          preppedResult = _.pick(child.data, listingKeys)
-          
-          preppedResult.kiwi_created_at = preppedResult.created_utc * 1000 # to normalize to JS's Date.now() millisecond UTC timestamp
-          
-          if customSearchBool is false
-            preppedResult.kiwi_exact_match = _exact_match_url_check(searchQueryString, preppedResult.url)
-          else
-            preppedResult.kiwi_exact_match = true
-          
-          preppedResult.kiwi_score = preppedResult.score
-          
-          preppedResult.kiwi_permaId = preppedResult.permalink
-          
-          matchedListings.push preppedResult
+          if child.data? and child.kind? and child.kind == "t3"
+            
+            listingKeys = ["subreddit",'url',"score",'domain','gilded',"over_18","author","hidden","downs","permalink","created","title","created_utc","ups","num_comments"]
+            
+            preppedResult = _.pick(child.data, listingKeys)
+            
+            preppedResult.kiwi_created_at = preppedResult.created_utc * 1000 # to normalize to JS's Date.now() millisecond UTC timestamp
+            
+            if customSearchBool is false
+              preppedResult.kiwi_exact_match = _exact_match_url_check(searchQueryString, preppedResult.url)
+            else
+              preppedResult.kiwi_exact_match = true
+            
+            preppedResult.kiwi_score = preppedResult.score
+            
+            preppedResult.kiwi_permaId = preppedResult.permalink
+            
+            _matchedListings.push preppedResult
       
+      return _matchedListings
+    
+    if _.isArray(resultsObj)
+      
+      for result in resultsObj
+        matchedListings = forEachQueryObject(result, matchedListings)
+      
+    else
+      matchedListings = forEachQueryObject(resultsObj, matchedListings)
+    
     return matchedListings
       
     
@@ -1657,6 +1676,9 @@ _save_from_popupParcel = (_popupParcel, forUrl, updateToView) ->
   if updateToView?
     
     parcel = {}
+    
+    _popupParcel['view'] = updateToView
+    
     popupParcel = _popupParcel
     parcel.msg = 'kiwiPP_popupParcel_ready'
     parcel.forUrl = tabUrl
@@ -1667,7 +1689,6 @@ _save_from_popupParcel = (_popupParcel, forUrl, updateToView) ->
   #console.log 'in _save_from_popupParcel _popupParcel.forUrl ' + _popupParcel.forUrl
   #console.log 'in _save_from_popupParcel tabUrl ' + tabUrl
   if _popupParcel.forUrl == tabUrl
-    
     
     
     if formerResearchModeValue? and formerResearchModeValue == 'off' and 
@@ -1781,8 +1802,183 @@ turnResearchModeOff = ->
       
       refreshBadge(firefoxStorage.storage.kiwi_servicesInfo, urlResults)   
       
+autoOffTimerExpired_orResearchModeOff_withoutURLoverride = (currentTime, overrideResearchModeOff, tabUrl, kiwi_urlsResultsCache) ->
+  if firefoxStorage.storage.kiwi_userPreferences?
+    
+    if firefoxStorage.storage.kiwi_userPreferences.autoOffAtUTCmilliTimestamp?
+      if currentTime > firefoxStorage.storage.kiwi_userPreferences.autoOffAtUTCmilliTimestamp 
+        #console.log 'timer is past due - turning off - in initifnewurl'
+        firefoxStorage.storage.kiwi_userPreferences.researchModeOnOff = 'off'
+        
+    if firefoxStorage.storage.kiwi_userPreferences.researchModeOnOff is 'off' and overrideResearchModeOff == false
+      updateBadgeText('off')
+      
+      return true
   
+  
+  return false
 
+proceedWithPreInitCheck =  (overrideSameURLCheck_popupOpen, 
+    overrideResearchModeOff, sameURLCheck, tabUrl, currentTime, popupOpen) ->
+  
+  if firefoxStorage.storage['kiwi_userPreferences']? and overrideResearchModeOff is false
+    # overrideResearchModeOff = is_url_whitelisted(firefoxStorage.storage['kiwi_userPreferences'].urlSubstring_whitelists, tabUrl)
+    
+    isUrlWhitelistedBool = is_url_whitelisted(firefoxStorage.storage['kiwi_userPreferences'].urlSubstring_whitelists, tabUrl)
+    
+      # provided that the user isn't specifically researching a URL, if it's whitelisted, then that acts as override
+    overrideResearchModeOff = isUrlWhitelistedBool
+    
+  
+  
+  if autoOffTimerExpired_orResearchModeOff_withoutURLoverride(currentTime, overrideResearchModeOff, tabUrl, kiwi_urlsResultsCache) is true
+    # show cached responses, if present
+      
+      #console.log 'if tabUrl == tempResponsesStore.forUrl'
+      #console.log tabUrl
+      #console.log tempResponsesStore.forUrl
+      
+    if kiwi_urlsResultsCache[tabUrl]?
+      _set_popupParcel(kiwi_urlsResultsCache[tabUrl],tabUrl,false);
+      if firefoxStorage.storage['kiwi_servicesInfo']?
+        refreshBadge(firefoxStorage.storage['kiwi_servicesInfo'], kiwi_urlsResultsCache[tabUrl])
+    else
+      
+      _set_popupParcel({},tabUrl,true); 
+  else
+    
+    periodicCleanup(tabUrl, (tabUrl) ->
+      
+      #console.log 'in initialize callback'
+      
+      if !firefoxStorage.storage['kiwi_userPreferences']?
+        
+        # defaultUserPreferences 
+        
+        #console.log "#console.debug allItemsInSyncedStorage['kiwi_userPreferences']"
+        #console.debug allItemsInSyncedStorage['kiwi_userPreferences']
+        
+        _autoOffAtUTCmilliTimestamp = setAutoOffTimer(false, defaultUserPreferences.autoOffAtUTCmilliTimestamp, 
+            defaultUserPreferences.autoOffTimerValue, defaultUserPreferences.autoOffTimerType, defaultUserPreferences.researchModeOnOff)
+        
+        defaultUserPreferences.autoOffAtUTCmilliTimestamp = _autoOffAtUTCmilliTimestamp
+        
+        # setObj =
+        #   kiwi_servicesInfo: defaultServicesInfo
+        #   kiwi_userPreferences: defaultUserPreferences
+        
+        firefoxStorage.storage.kiwi_servicesInfo = defaultServicesInfo
+        firefoxStorage.storage.kiwi_userPreferences = defaultUserPreferences
+        
+        # chrome.storage.sync.set(setObj, -> )
+        
+        isUrlBlocked = is_url_blocked(defaultUserPreferences.urlSubstring_blacklists, tabUrl)
+        if isUrlBlocked == true and overrideResearchModeOff == false
+          
+          # user is not interested in results for this url
+          updateBadgeText('block')
+          #console.log '# user is not interested in results for this url: ' + tabUrl
+          
+          _set_popupParcel({}, tabUrl, true)  # trying to send, because options page
+          
+          return 0 # we return before initializing script
+          
+        initialize(tabUrl)
+        
+      else
+        #console.log "allItemsInSyncedStorage['kiwi_userPreferences'].urlSubstring_blacklists"
+        #console.debug allItemsInSyncedStorage['kiwi_userPreferences'].urlSubstring_blacklists
+        
+        isUrlBlocked = is_url_blocked(firefoxStorage.storage['kiwi_userPreferences'].urlSubstring_blacklists, tabUrl)
+        
+        if isUrlBlocked == true and overrideResearchModeOff == false
+          
+          # user is not interested in results for this url
+          updateBadgeText('block')
+          #console.log '# user is not interested in results for this url: ' + tabUrl
+          _set_popupParcel({}, tabUrl, true)  # trying to send, because options page
+          
+          return 0 # we return/cease before initializing script
+            
+        initialize(tabUrl)
+    )
+
+checkForNewDefaultUserPreferenceAttributes_thenProceedWithInitCheck = (overrideSameURLCheck_popupOpen, 
+            overrideResearchModeOff, sameURLCheck, tabUrl, currentTime, popupOpen) ->
+  
+    # ^^ checks if newly added default user preference attributes exist (so new features don't break current installs)
+  setObj = {}
+  newUserPrefsAttribute = false
+  newServicesInfoAttribute = false
+  
+  if firefoxStorage.storage['kiwi_userPreferences']?
+    
+    newUserPreferences = _.extend {}, firefoxStorage.storage['kiwi_userPreferences']
+    
+    for keyName, value of defaultUserPreferences
+      
+      if typeof firefoxStorage.storage['kiwi_userPreferences'][keyName] is 'undefined'
+        # console.log 'the following is a new keyName '
+        # console.log keyName
+        newUserPrefsAttribute = true
+        newUserPreferences[keyName] = value
+  
+  if firefoxStorage.storage['kiwi_servicesInfo']?
+    
+    # needs to handle entirely new services as well as simplly new attributes
+    newServicesInfo = _.extend [], firefoxStorage.storage['kiwi_servicesInfo']
+    
+    for service_default, index in defaultServicesInfo
+      
+      matchingService = _.find(firefoxStorage.storage['kiwi_servicesInfo'], (service_info) -> 
+        if service_info.name is service_default.name
+          return true
+        else
+          return false
+      )
+      
+      if matchingService?
+        
+        newServiceObj = _.extend {}, matchingService 
+        for keyName, value of service_default
+          # console.log keyName
+          if typeof matchingService[keyName] is 'undefined'
+            
+            newServicesInfoAttribute = true
+            newServiceObj[keyName] = value
+        
+        indexOfServiceToReplace = _.indexOf(newServicesInfo, matchingService)
+        
+        newServicesInfo[indexOfServiceToReplace] = newServiceObj
+      else
+        newServicesInfoAttribute = true
+        newServicesInfo.push service_default
+  
+  if newUserPrefsAttribute or newServicesInfoAttribute
+    if newUserPrefsAttribute
+      setObj['kiwi_userPreferences'] = newUserPreferences
+      
+    if newServicesInfoAttribute
+      setObj['kiwi_servicesInfo'] = newServicesInfo
+    
+    # chrome.storage.sync.set(setObj, ->
+      
+    if newUserPrefsAttribute
+      firefoxStorage.storage['kiwi_userPreferences'] = newUserPreferences
+    
+    if newServicesInfoAttribute
+      firefoxStorage.storage['kiwi_servicesInfo'] = newServicesInfo
+    
+    # console.log 'console.debug allItemsInSyncedStorage'
+    # console.debug allItemsInSyncedStorage
+    
+    proceedWithPreInitCheck(overrideSameURLCheck_popupOpen, overrideResearchModeOff,
+        sameURLCheck, tabUrl, currentTime, popupOpen)
+      
+  else
+    proceedWithPreInitCheck(overrideSameURLCheck_popupOpen, overrideResearchModeOff,
+        sameURLCheck, tabUrl, currentTime, popupOpen)
+  
   # a wise coder once told me "try to keep functions to 10 lines or less." yea, welcome to initIfNewURL! let me find my cowboy hat :D
 initIfNewURL = (overrideSameURLCheck_popupOpen = false, overrideResearchModeOff = false) ->
   
@@ -1820,6 +2016,7 @@ initIfNewURL = (overrideSameURLCheck_popupOpen = false, overrideResearchModeOff 
       if tabs.activeTab.readyState == 'complete'
         title = tabs.activeTab.title
         
+          # a little custom title formatting for sites that begin their tab titles with "(<number>)" like twitter.com
         if title.length > 3 and title[0] == "(" and isNaN(title[1]) == false and title.indexOf(')') != -1 and
             title.indexOf(')') != title.length - 1
           
@@ -1843,13 +2040,6 @@ initIfNewURL = (overrideSameURLCheck_popupOpen = false, overrideResearchModeOff 
     tabUrl_hashWordArray = CryptoJS.SHA512(tabUrl)
     tabUrl_hash = tabUrl_hashWordArray.toString(CryptoJS.enc.Latin1)
     
-    
-    
-    
-    # chrome.storage.local.get( null, (allItemsInLocalStorage) ->
-      
-      # #console.log 'chrome.storage.local.get(null, (allItemsInLocalStorage) ->  '
-        
     sameURLCheck = true
     
     historyString = reduceHashByHalf(tabUrl_hash)
@@ -1885,102 +2075,9 @@ initIfNewURL = (overrideSameURLCheck_popupOpen = false, overrideResearchModeOff 
     
     if sameURLCheck == false          
       updateBadgeText('')
-      #console.log '#console.debug kiwi_urlsResultsCache'
-      #console.debug kiwi_urlsResultsCache
-    
-      # chrome.storage.sync.get(null, (allItemsInSyncedStorage) ->
-        
-        #console.log 'allItemsInSyncedStorage123'
-        #console.debug allItemsInSyncedStorage
-      if firefoxStorage.storage.kiwi_userPreferences?
-        
-        if firefoxStorage.storage.kiwi_userPreferences.autoOffAtUTCmilliTimestamp?
-          if currentTime > firefoxStorage.storage.kiwi_userPreferences.autoOffAtUTCmilliTimestamp 
-            #console.log 'timer is past due - turning off - in initifnewurl'
-            firefoxStorage.storage.kiwi_userPreferences.researchModeOnOff = 'off'
-            
-        if firefoxStorage.storage.kiwi_userPreferences.researchModeOnOff is 'off' and overrideResearchModeOff == false
-          updateBadgeText('off')
-          
-          #console.log '#console.debug kiwi_urlsResultsCache'
-          #console.debug kiwi_urlsResultsCache
-          
-          # showing cached responses
-          if tabUrl == tempResponsesStore.forUrl
-            #console.log 'if tabUrl == tempResponsesStore.forUrl'
-            #console.log tabUrl
-            #console.log tempResponsesStore.forUrl
-            if kiwi_urlsResultsCache[tabUrl]?
-              _set_popupParcel(kiwi_urlsResultsCache[tabUrl],tabUrl,false);
-              if firefoxStorage.storage['kiwi_servicesInfo']?
-                refreshBadge(firefoxStorage.storage['kiwi_servicesInfo'], kiwi_urlsResultsCache[tabUrl])
-          else
-            #console.log '_set_popupParcel({},tabUrl,false);  '
-            _set_popupParcel({},tabUrl,false);  
-          return 0;
+      checkForNewDefaultUserPreferenceAttributes_thenProceedWithInitCheck(overrideSameURLCheck_popupOpen, 
+            overrideResearchModeOff, sameURLCheck, tabUrl, currentTime, popupOpen)
       
-      
-      periodicCleanup(tabUrl, (tabUrl) ->
-        
-        #console.log 'in initialize callback'
-        
-        if !firefoxStorage.storage['kiwi_userPreferences']?
-          
-          # defaultUserPreferences 
-          
-          #console.log "#console.debug allItemsInSyncedStorage['kiwi_userPreferences']"
-          #console.debug allItemsInSyncedStorage['kiwi_userPreferences']
-          
-          _autoOffAtUTCmilliTimestamp = setAutoOffTimer(false, defaultUserPreferences.autoOffAtUTCmilliTimestamp, 
-              defaultUserPreferences.autoOffTimerValue, defaultUserPreferences.autoOffTimerType, defaultUserPreferences.researchModeOnOff)
-          
-          defaultUserPreferences.autoOffAtUTCmilliTimestamp = _autoOffAtUTCmilliTimestamp
-          
-          # setObj =
-          #   kiwi_servicesInfo: defaultServicesInfo
-          #   kiwi_userPreferences: defaultUserPreferences
-          
-          firefoxStorage.storage.kiwi_servicesInfo = defaultServicesInfo
-          firefoxStorage.storage.kiwi_userPreferences = defaultUserPreferences
-          
-          # chrome.storage.sync.set(setObj, -> )
-          
-          isUrlBlocked = is_url_blocked(defaultUserPreferences.urlSubstring_blacklists, tabUrl)
-          if isUrlBlocked == true and overrideResearchModeOff == false
-            
-            # user is not interested in results for this url
-            updateBadgeText('block')
-            #console.log '# user is not interested in results for this url: ' + tabUrl
-            
-            _set_popupParcel({}, tabUrl, true)  # trying to send, because options page
-            
-            return 0 # we return before initializing script
-            
-          initialize(tabUrl)
-          
-        else
-          #console.log "allItemsInSyncedStorage['kiwi_userPreferences'].urlSubstring_blacklists"
-          #console.debug allItemsInSyncedStorage['kiwi_userPreferences'].urlSubstring_blacklists
-          
-          isUrlBlocked = is_url_blocked(firefoxStorage.storage['kiwi_userPreferences'].urlSubstring_blacklists, tabUrl)
-          
-          if isUrlBlocked == true and overrideResearchModeOff == false
-            
-            # user is not interested in results for this url
-            updateBadgeText('block')
-            #console.log '# user is not interested in results for this url: ' + tabUrl
-            _set_popupParcel({}, tabUrl, true)  # trying to send, because options page
-            
-            return 0 # we return before initializing script
-              
-          initialize(tabUrl)
-      )
-          
-        
-    
-  
-
-
 tabs.on 'ready', (tab) ->
   # console.log('tab is loaded', tab.title, tab.url)
   initIfNewURL()
@@ -1989,28 +2086,6 @@ tabs.on('activate', ->
   # console.log('active: ' + tabs.activeTab.url);
   initIfNewURL()
 )
-
-# chrome.tabs.onActivated.addListener( -> 
-#     # nesting function because the Chrome api tab listening functions were exec-ing callback with an integer argument
-#     initIfNewURL()
-#   )
-
-# chrome.tabs.onUpdated.addListener((tabId , info) ->
-#     updateBadgeText('')
-#     if tabTitleObject? and tabTitleObject.forUrl == tabUrl and !tabTitleObject.tabTitle?
-#       if (info.status == "complete") 
-#         #console.log ' if (info.status == "complete") '
-#         #console.debug info
-#         initIfNewURL(true)
-#         return 0
-#     else
-#       initIfNewURL()
-#   )
-
-# chrome.windows.onFocusChanged.addListener( -> 
-#     # nesting function because the Chrome api tab listening functions were exec-ing callback with an integer argument
-#     initIfNewURL()
-#   )
 
 # intial startup
 if tabTitleObject == null

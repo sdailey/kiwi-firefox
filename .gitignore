@@ -1,0 +1,4 @@
+.DS_Store
+*.xpi
+old/
+asset-files/
