@@ -634,12 +634,12 @@
                 $("#autoOffTimer").html("Auto-off timer is not set");
               }
               researchModeHtml = '';
-              if (popupParcel.kiwi_userPreferences.researchModeOnOff === "on") {
-                researchOnString = " checked='checked' ";
-                researchOffString = "";
-              } else {
+              if (popupParcel.kiwi_userPreferences.researchModeOnOff === "off") {
                 researchOnString = "";
                 researchOffString = " checked='checked' ";
+              } else {
+                researchOnString = " checked='checked' ";
+                researchOffString = "";
               }
               autoOffTimerType = popupParcel.kiwi_userPreferences.autoOffTimerType;
               autoOffTimerValue = popupParcel.kiwi_userPreferences.autoOffTimerValue;
@@ -664,7 +664,7 @@
               _ref = popupParcel.kiwi_userPreferences.urlSubstring_whitelists.anyMatch;
               for (index = _i = 0, _len = _ref.length; _i < _len; index = ++_i) {
                 whitelistSubString = _ref[index];
-                researchModeHtml += '<tr> <th scope="row" style="width:35px;"> ' + (index + 1) + ' </th> <td> ' + whitelistSubString + ' </td> <td style="width:35px;"> <button class="btn btn-xs btn-default"> <span title="remove" data-whitelistStringToRemove="' + whitelistSubString + '" class="glyphicon glyphicon-remove removeWhitelistString" aria-hidden="true" style="color:#E65F5F;" ></span> </button> </td> </tr>';
+                researchModeHtml += '<tr> <th scope="row" style="width:35px;"> ' + (index + 1) + ' </th> <td> ' + whitelistSubString + ' </td> <td style="width:35px;"> <button title="remove" class="btn btn-xs btn-default removeWhitelistString" data-whitelistStringToRemove="' + whitelistSubString + '" > <span class="glyphicon glyphicon-remove" aria-hidden="true" style="color:#E65F5F;" ></span> </button> </td> </tr>';
               }
               researchModeHtml += '</tbody> </table> <br>Auto-Off Timer set for: ' + timerOnlyUsefulWhenMessage + '<br>&nbsp; &nbsp;<label><input ' + timerDisabled + ' type="radio" name="researchAutoOffType" ' + auto20 + ' value="20"> 20 min</label> <br>&nbsp; &nbsp;<label><input ' + timerDisabled + ' type="radio" name="researchAutoOffType" ' + auto60 + ' value="60"> 1 hr</label> <br>&nbsp; &nbsp;<label><input ' + timerDisabled + ' type="radio" name="researchAutoOffType" ' + autoAlways + ' value="always"> Always On</label> <br>&nbsp; &nbsp;<label><input ' + timerDisabled + ' type="radio" name="researchAutoOffType" ' + autoCustom + ' value="custom"> Custom</label> &nbsp; &nbsp; <input ' + timerDisabled + ' id="autoCustomValue" type="text" value="' + autoCustomValue + '" size="4" disabled /> minutes';
               $("#researchModeDrop").html(researchModeHtml);
@@ -771,13 +771,10 @@
               postError = function(userErrMsg) {
                 return $(_this.DOMselector + " .userErrMsg").html("<br>" + userErrMsg);
               };
-              removeWhitelistStringButtons.bind('click', function(ev) {
-                var newWhitelistAnyMatchArray, parcel, whitelistSubString;
-                whitelistSubString = $(ev.target).attr('data-whitelistStringToRemove');
-                console.debug(popupParcel.kiwi_userPreferences.urlSubstring_whitelists.anyMatch);
-                console.debug(whitelistSubString);
-                newWhitelistAnyMatchArray = _.without(popupParcel.kiwi_userPreferences.urlSubstring_whitelists.anyMatch, whitelistSubString);
-                popupParcel.kiwi_userPreferences.urlSubstring_whitelists.anyMatch = newWhitelistAnyMatchArray;
+              addWhitelistString_button.bind('click', function(ev) {
+                var parcel, whitelistSubString_toAdd;
+                whitelistSubString_toAdd = $(_this.DOMselector + " #addWhiteListString input").val();
+                popupParcel.kiwi_userPreferences.urlSubstring_whitelists.anyMatch.push(whitelistSubString_toAdd);
                 parcel = {
                   refreshView: 'userPreferences',
                   keyName: 'kiwi_userPreferences',
@@ -787,10 +784,11 @@
                 };
                 return sendParcel(parcel);
               });
-              addWhitelistString_button.bind('click', function(ev) {
-                var parcel, whitelistSubString_toAdd;
-                whitelistSubString_toAdd = $(_this.DOMselector + " #addWhiteListString input").val();
-                popupParcel.kiwi_userPreferences.urlSubstring_whitelists.anyMatch.push(whitelistSubString_toAdd);
+              removeWhitelistStringButtons.bind('click', function(ev) {
+                var newWhitelistAnyMatchArray, parcel, whitelistSubString;
+                whitelistSubString = $(ev.target).attr('data-whitelistStringToRemove');
+                newWhitelistAnyMatchArray = _.without(popupParcel.kiwi_userPreferences.urlSubstring_whitelists.anyMatch, whitelistSubString);
+                popupParcel.kiwi_userPreferences.urlSubstring_whitelists.anyMatch = newWhitelistAnyMatchArray;
                 parcel = {
                   refreshView: 'userPreferences',
                   keyName: 'kiwi_userPreferences',

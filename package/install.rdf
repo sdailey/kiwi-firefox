@@ -5,7 +5,7 @@
           <em:type>2</em:type>
           <em:bootstrap>true</em:bootstrap>
           <em:unpack>false</em:unpack>
-          <em:version>0.9.86</em:version>
+          <em:version>1.0.5</em:version>
           <em:name>Kiwi Conversations</em:name>
           <em:description>Kiwi Conversations searches community sites to find forum comment threads about the url you&apos;re visiting.</em:description>
           <em:creator>Spencer Dailey</em:creator>

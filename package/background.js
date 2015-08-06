@@ -251,7 +251,7 @@
 
   defaultUserPreferences = {
     fontSize: .8,
-    researchModeOnOff: 'on',
+    researchModeOnOff: 'off',
     autoOffAtUTCmilliTimestamp: null,
     autoOffTimerType: 'always',
     autoOffTimerValue: null,
@@ -1227,9 +1227,11 @@
     badgeText = '';
     if (abbreviationLettersArray.length === 0) {
       if ((firefoxStorage.storage.kiwi_userPreferences != null) && firefoxStorage.storage['kiwi_userPreferences'].researchModeOnOff === 'off') {
-        badgeText = 'off';
+        badgeText = '';
       } else if (defaultUserPreferences.researchModeOnOff === 'off') {
-        badgeText = 'off';
+        badgeText = '';
+      } else {
+        badgeText = '';
       }
     } else {
       badgeText = abbreviationLettersArray.join(" ");
@@ -1406,7 +1408,7 @@
         }
       }
       if (firefoxStorage.storage.kiwi_userPreferences.researchModeOnOff === 'off' && overrideResearchModeOff === false) {
-        updateBadgeText('off');
+        updateBadgeText('');
         return true;
       }
     }

@@ -313,8 +313,8 @@ popupParcel = {}
 
 defaultUserPreferences = {
 
-  fontSize: .8
-  researchModeOnOff: 'on' # or 'on'
+  fontSize: .8 # not yet implemented
+  researchModeOnOff: 'off' # or 'on'
   autoOffAtUTCmilliTimestamp: null
   autoOffTimerType: 'always' # 'custom','always','20','60'
   autoOffTimerValue: null
@@ -1555,9 +1555,11 @@ refreshBadge = (servicesInfo, resultsObjForCurrentUrl) ->
   badgeText = ''
   if abbreviationLettersArray.length == 0
     if firefoxStorage.storage.kiwi_userPreferences? and firefoxStorage.storage['kiwi_userPreferences'].researchModeOnOff == 'off'
-      badgeText = 'off'
+      badgeText = ''
     else if defaultUserPreferences.researchModeOnOff == 'off'
-      badgeText = 'off'
+      badgeText = ''
+    else
+      badgeText = ''
   else
     badgeText = abbreviationLettersArray.join(" ")
 
@@ -1815,7 +1817,7 @@ autoOffTimerExpired_orResearchModeOff_withoutURLoverride = (currentTime, overrid
         firefoxStorage.storage.kiwi_userPreferences.researchModeOnOff = 'off'
 
     if firefoxStorage.storage.kiwi_userPreferences.researchModeOnOff is 'off' and overrideResearchModeOff == false
-      updateBadgeText('off')
+      updateBadgeText('') # off
 
       return true
 
@@ -1985,6 +1987,13 @@ checkForNewDefaultUserPreferenceAttributes_thenProceedWithInitCheck = (overrideS
 
   # a wise coder once told me "try to keep functions to 10 lines or less." yea, welcome to initIfNewURL! let me find my cowboy hat :D
 initIfNewURL = (overrideSameURLCheck_popupOpen = false, overrideResearchModeOff = false) ->
+  # console.log 'yoyoyo'
+  # if firefoxStorage.storage['kiwi_userPreferences']?
+  #   console.log 'nothing 0 '
+  #   console.log firefoxStorage.storage['kiwi_userPreferences'].researchModeOnOff
+  #   # console.debug firefoxStorage.storage['kiwi_userPreferences']
+  # else
+  #   console.log 'nothing'
 
   if typeof overrideSameURLCheck_popupOpen != 'boolean'
     # ^^ because the Chrome api tab listening functions were exec-ing callback with an integer argument

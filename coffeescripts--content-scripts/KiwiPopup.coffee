@@ -671,12 +671,12 @@ class UserPreferences extends SwitchView
           
         researchModeHtml = ''
         
-        if popupParcel.kiwi_userPreferences.researchModeOnOff == "on"
-          researchOnString = " checked='checked' "
-          researchOffString = ""
-        else
+        if popupParcel.kiwi_userPreferences.researchModeOnOff is "off"
           researchOnString = ""
           researchOffString = " checked='checked' "
+        else
+          researchOnString = " checked='checked' "
+          researchOffString = ""
         
           
         autoOffTimerType = popupParcel.kiwi_userPreferences.autoOffTimerType
@@ -761,9 +761,9 @@ class UserPreferences extends SwitchView
               <th scope="row" style="width:35px;"> ' + (index + 1) + ' </th>
               <td> ' + whitelistSubString + ' </td>
               <td style="width:35px;"> 
-                <button class="btn btn-xs btn-default"> 
-                  <span title="remove" data-whitelistStringToRemove="' + whitelistSubString + '" 
-                      class="glyphicon glyphicon-remove removeWhitelistString" aria-hidden="true"
+                <button title="remove" class="btn btn-xs btn-default removeWhitelistString" data-whitelistStringToRemove="' + whitelistSubString + '" > 
+                  <span 
+                      class="glyphicon glyphicon-remove" aria-hidden="true"
                       style="color:#E65F5F;"
                     ></span>
                 </button>
@@ -851,8 +851,8 @@ class UserPreferences extends SwitchView
       bind: (popupParcel) =>
         
         saveButtons = $(@DOMselector + " .userPreferencesSave")
-        
         removeWhitelistStringButtons = $(@DOMselector + " .removeWhitelistString")
+        
         
         autoTimerRadios = $(@DOMselector + " input:radio[name='researchAutoOffType']")
         
@@ -862,9 +862,7 @@ class UserPreferences extends SwitchView
         addWhitelistString_button = $(@DOMselector + " #addWhiteListString label")
         
         
-        
         @elsToUnbind = @elsToUnbind.concat allInputs, saveButtons, autoTimerRadios, removeWhitelistStringButtons, addWhitelistString_button
-        
         
         
         saveButtons.attr('disabled','disabled')
@@ -931,27 +929,6 @@ class UserPreferences extends SwitchView
           $(@DOMselector + " .userErrMsg").html("<br>" + userErrMsg)
         
         
-        removeWhitelistStringButtons.bind 'click', (ev) =>
-          
-          whitelistSubString = $(ev.target).attr('data-whitelistStringToRemove')
-          
-          console.debug popupParcel.kiwi_userPreferences.urlSubstring_whitelists.anyMatch
-          console.debug whitelistSubString
-          
-          newWhitelistAnyMatchArray = _.without(popupParcel.kiwi_userPreferences.urlSubstring_whitelists.anyMatch, whitelistSubString);
-          
-          popupParcel.kiwi_userPreferences.urlSubstring_whitelists.anyMatch = newWhitelistAnyMatchArray
-          
-          
-          parcel =
-            refreshView: 'userPreferences'
-            keyName: 'kiwi_userPreferences'
-            newValue: popupParcel.kiwi_userPreferences
-            localOrSync: 'sync'
-            msg: 'kiwiPP_post_save_a_la_carte'
-          
-          sendParcel(parcel)
-        
         
         addWhitelistString_button.bind 'click', (ev) =>
           
@@ -970,7 +947,25 @@ class UserPreferences extends SwitchView
           
           sendParcel(parcel)
         
-        
+        removeWhitelistStringButtons.bind 'click', (ev) ->
+          
+          whitelistSubString = $(ev.target).attr('data-whitelistStringToRemove')
+          
+          
+          
+          newWhitelistAnyMatchArray = _.without(popupParcel.kiwi_userPreferences.urlSubstring_whitelists.anyMatch, whitelistSubString);
+          
+          popupParcel.kiwi_userPreferences.urlSubstring_whitelists.anyMatch = newWhitelistAnyMatchArray
+          
+          parcel =
+            refreshView: 'userPreferences'
+            keyName: 'kiwi_userPreferences'
+            newValue: popupParcel.kiwi_userPreferences
+            localOrSync: 'sync'
+            msg: 'kiwiPP_post_save_a_la_carte'
+          
+          sendParcel(parcel)
+          
         
         saveButtons.bind 'click', ->
           
